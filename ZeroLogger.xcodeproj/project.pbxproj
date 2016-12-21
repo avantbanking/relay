@@ -15,6 +15,7 @@
 		4553648C1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */; };
 		4553648D1E0A0D5700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */; };
 		4553648E1E0A0D5700BF1699 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 455364891E0A0B2500BF1699 /* GRDB.framework */; };
+		455364911E0A0F2400BF1699 /* CocoaLumberjack.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 455364901E0A0F2400BF1699 /* CocoaLumberjack.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +38,7 @@
 		455364861E0A098D00BF1699 /* ZeroLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZeroLogger.swift; sourceTree = "<group>"; };
 		455364891E0A0B2500BF1699 /* GRDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GRDB.framework; path = Carthage/Build/iOS/GRDB.framework; sourceTree = "<group>"; };
 		4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaLumberjackSwift.framework; path = Carthage/Build/iOS/CocoaLumberjackSwift.framework; sourceTree = "<group>"; };
+		455364901E0A0F2400BF1699 /* CocoaLumberjack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaLumberjack.framework; path = Carthage/Build/iOS/CocoaLumberjack.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +56,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				455364741E0A07A000BF1699 /* ZeroLogger.framework in Frameworks */,
+				455364911E0A0F2400BF1699 /* CocoaLumberjack.framework in Frameworks */,
 				4553648D1E0A0D5700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */,
 				4553648E1E0A0D5700BF1699 /* GRDB.framework in Frameworks */,
 			);
@@ -103,6 +106,7 @@
 		455364881E0A0B2400BF1699 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				455364901E0A0F2400BF1699 /* CocoaLumberjack.framework */,
 				4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */,
 				455364891E0A0B2500BF1699 /* GRDB.framework */,
 			);
@@ -226,8 +230,9 @@
 			files = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/Cocoalumberjack.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/CocoaLumberjack.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GRDB.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/CocoaLumberjackSwift.framework",
 			);
 			outputPaths = (
 			);
@@ -241,8 +246,9 @@
 			files = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/Cocoalumberjack.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/CocoaLumberjack.framework",
 				"$(SRCROOT)/Carthage/Build/iOS/GRDB.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/CocoaLumberjackSwift.framework",
 			);
 			name = Carthage;
 			outputPaths = (

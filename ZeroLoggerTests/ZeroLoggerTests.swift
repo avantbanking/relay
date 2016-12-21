@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import CocoaLumberjack
+import CocoaLumberjackSwift
 
 @testable import ZeroLogger
 
@@ -16,6 +16,7 @@ class ZeroLoggerTests: XCTestCase {
     override func setUp() {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
+        DDLog.add(ZeroLogger())
     }
     
     override func tearDown() {
@@ -25,7 +26,7 @@ class ZeroLoggerTests: XCTestCase {
     
     
     func testLog() {
-        
+        DDLogInfo("hello")
     }
     
     func testExample() {
