@@ -10,6 +10,11 @@
 		455364741E0A07A000BF1699 /* ZeroLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553646A1E0A07A000BF1699 /* ZeroLogger.framework */; };
 		455364791E0A07A000BF1699 /* ZeroLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364781E0A07A000BF1699 /* ZeroLoggerTests.swift */; };
 		4553647B1E0A07A000BF1699 /* ZeroLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = 4553646D1E0A07A000BF1699 /* ZeroLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		455364871E0A098D00BF1699 /* ZeroLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364861E0A098D00BF1699 /* ZeroLogger.swift */; };
+		4553648A1E0A0B2500BF1699 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 455364891E0A0B2500BF1699 /* GRDB.framework */; };
+		4553648C1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */; };
+		4553648D1E0A0D5700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */; };
+		4553648E1E0A0D5700BF1699 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 455364891E0A0B2500BF1699 /* GRDB.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +34,9 @@
 		455364731E0A07A000BF1699 /* ZeroLoggerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZeroLoggerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		455364781E0A07A000BF1699 /* ZeroLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZeroLoggerTests.swift; sourceTree = "<group>"; };
 		4553647A1E0A07A000BF1699 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		455364861E0A098D00BF1699 /* ZeroLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZeroLogger.swift; sourceTree = "<group>"; };
+		455364891E0A0B2500BF1699 /* GRDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GRDB.framework; path = Carthage/Build/iOS/GRDB.framework; sourceTree = "<group>"; };
+		4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaLumberjackSwift.framework; path = Carthage/Build/iOS/CocoaLumberjackSwift.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +44,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4553648A1E0A0B2500BF1699 /* GRDB.framework in Frameworks */,
+				4553648C1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +54,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				455364741E0A07A000BF1699 /* ZeroLogger.framework in Frameworks */,
+				4553648D1E0A0D5700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */,
+				4553648E1E0A0D5700BF1699 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,6 +68,7 @@
 				4553646C1E0A07A000BF1699 /* ZeroLogger */,
 				455364771E0A07A000BF1699 /* ZeroLoggerTests */,
 				4553646B1E0A07A000BF1699 /* Products */,
+				455364881E0A0B2400BF1699 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -73,6 +86,7 @@
 			children = (
 				4553646D1E0A07A000BF1699 /* ZeroLogger.h */,
 				4553646E1E0A07A000BF1699 /* Info.plist */,
+				455364861E0A098D00BF1699 /* ZeroLogger.swift */,
 			);
 			path = ZeroLogger;
 			sourceTree = "<group>";
@@ -84,6 +98,15 @@
 				4553647A1E0A07A000BF1699 /* Info.plist */,
 			);
 			path = ZeroLoggerTests;
+			sourceTree = "<group>";
+		};
+		455364881E0A0B2400BF1699 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */,
+				455364891E0A0B2500BF1699 /* GRDB.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -108,6 +131,7 @@
 				455364661E0A07A000BF1699 /* Frameworks */,
 				455364671E0A07A000BF1699 /* Headers */,
 				455364681E0A07A000BF1699 /* Resources */,
+				455364851E0A08A900BF1699 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -125,6 +149,7 @@
 				4553646F1E0A07A000BF1699 /* Sources */,
 				455364701E0A07A000BF1699 /* Frameworks */,
 				455364711E0A07A000BF1699 /* Resources */,
+				4553648F1E0A0D5D00BF1699 /* Carthage */,
 			);
 			buildRules = (
 			);
@@ -149,6 +174,7 @@
 					455364691E0A07A000BF1699 = {
 						CreatedOnToolsVersion = 8.2;
 						DevelopmentTeam = PZX79F275H;
+						LastSwiftMigration = 0820;
 						ProvisioningStyle = Automatic;
 					};
 					455364721E0A07A000BF1699 = {
@@ -193,11 +219,46 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		455364851E0A08A900BF1699 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/iOS/Cocoalumberjack.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/GRDB.framework",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
+		};
+		4553648F1E0A0D5D00BF1699 /* Carthage */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/iOS/Cocoalumberjack.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/GRDB.framework",
+			);
+			name = Carthage;
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		455364651E0A07A000BF1699 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				455364871E0A098D00BF1699 /* ZeroLogger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -322,18 +383,24 @@
 		4553647F1E0A07A000BF1699 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = PZX79F275H;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = ZeroLogger/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.ZeroLogger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -341,12 +408,17 @@
 		455364801E0A07A000BF1699 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = PZX79F275H;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = ZeroLogger/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -360,7 +432,12 @@
 		455364821E0A07A000BF1699 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = PZX79F275H;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = ZeroLoggerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.ZeroLoggerTests;
@@ -372,7 +449,12 @@
 		455364831E0A07A000BF1699 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = PZX79F275H;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = ZeroLoggerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.ZeroLoggerTests;
