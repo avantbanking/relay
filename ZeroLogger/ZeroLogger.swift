@@ -57,7 +57,13 @@ class LogRecord : Record {
 
 public class ZeroLogger: DDAbstractLogger {
     var dbQueue: DatabaseQueue?
-    private static let dbPath = "loggerdb.sqlite"
+    private static let dbPath: String = {
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path else {
+            return ""
+        }
+
+       return documentsPath + "/loggerdb.sqlite"
+    }()
     
     static func reset() throws {
         if FileManager.default.fileExists(atPath: ZeroLogger.dbPath) {
@@ -67,21 +73,28 @@ public class ZeroLogger: DDAbstractLogger {
     
     override init() {
             dbQueue = try! DatabaseQueue(path: ZeroLogger.dbPath)
-            try! dbQueue?.inDatabase { db in
-                try db.create(table: "log_messages") { t in
-                    t.column("id", .integer).primaryKey()
-                    t.column("uuid", .text)
-                    t.column("message", .text)
-                    t.column("flag", .integer).notNull()
-                    t.column("level", .integer).notNull()
-                    t.column("context", .text)
-                    t.column("file", .text)
-                    t.column("function", .text)
-                    t.column("line", .integer)
-                    t.column("date", .datetime)
-                }
+        
+        if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path {
+            print("Documents Directory: " + documentsPath)
+        }
+        
+        
+        try! dbQueue?.inDatabase { db in
+            try db.create(table: "log_messages") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("uuid", .text)
+                t.column("message", .text)
+                t.column("flag", .integer).notNull()
+                t.column("level", .integer).notNull()
+                t.column("context", .text)
+                t.column("file", .text)
+                t.column("function", .text)
+                t.column("line", .integer)
+                t.column("date", .datetime)
             }
+        }
     }
+
     
     override public func log(message logMessage: DDLogMessage!) {
         // Generate a LogRecord from a LogMessage
