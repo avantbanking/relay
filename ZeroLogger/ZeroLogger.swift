@@ -11,13 +11,17 @@ import GRDB
 import CocoaLumberjack
 
 
-private class LogRecord : Record {
+class LogRecord : Record {
     var uuid: String
     var message: String
     var flag: Int
     var level: Int
     var date: Date
-    
+
+    override class var databaseTableName: String {
+        return "log_messages"
+    }
+
     required init(row: Row) {
         uuid = row.value(named: "uuid")
         message = row.value(named: "message")
@@ -38,6 +42,8 @@ private class LogRecord : Record {
         super.init()
     }
     
+    
+    
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["uuid": uuid,
                 "message": message,
@@ -51,14 +57,20 @@ private class LogRecord : Record {
 
 public class ZeroLogger: DDAbstractLogger {
     var dbQueue: DatabaseQueue?
+    private static let dbPath = "loggerdb.sqlite"
+    
+    static func reset() throws {
+        if FileManager.default.fileExists(atPath: ZeroLogger.dbPath) {
+            try FileManager.default.removeItem(atPath: ZeroLogger.dbPath)
+        }
+    }
     
     override init() {
-        do {
-            dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-            try dbQueue?.inDatabase { db in
+            dbQueue = try! DatabaseQueue(path: ZeroLogger.dbPath)
+            try! dbQueue?.inDatabase { db in
                 try db.create(table: "log_messages") { t in
                     t.column("id", .integer).primaryKey()
-                    t.column("uuid", .text).primaryKey()
+                    t.column("uuid", .text)
                     t.column("message", .text)
                     t.column("flag", .integer).notNull()
                     t.column("level", .integer).notNull()
@@ -66,19 +78,16 @@ public class ZeroLogger: DDAbstractLogger {
                     t.column("file", .text)
                     t.column("function", .text)
                     t.column("line", .integer)
-                    t.column("timestamp", .datetime)
+                    t.column("date", .datetime)
                 }
             }
-
-        } catch _ {
-            //
-        }
-
     }
     
     override public func log(message logMessage: DDLogMessage!) {
         // Generate a LogRecord from a LogMessage
-
+        let logRecord = LogRecord(logMessage: logMessage)
+        try! dbQueue?.inDatabase({ db in
+            try logRecord.insert(db)
+        })
     }
-
 }
