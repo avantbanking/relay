@@ -11,13 +11,16 @@ import GRDB
 import CocoaLumberjack
 
 
+typealias LogFailure = (task: URLSessionUploadTask, response: HTTPURLResponse)
+
+
 class LogRecord : Record {
     var uuid: String
     var message: String
     var flag: Int
     var level: Int
     var date: Date
-    var uploadStatus: Int
+    var uploadTaskID: Int?
 
     required init(row: Row) {
         uuid = row.value(named: "uuid")
@@ -25,18 +28,17 @@ class LogRecord : Record {
         flag = row.value(named: "flag")
         level = row.value(named: "level")
         date = row.value(named: "date")
-        uploadStatus = row.value(named: "uploadStatus")
+        uploadTaskID = row.value(named: "upload_task_id")
 
         super.init(row: row)
     }
-    
+
     init(logMessage: DDLogMessage) {
         uuid = UUID().uuidString
         message = logMessage.message
         flag = Int(logMessage.flag.rawValue)
         level = Int(logMessage.level.rawValue)
         date = logMessage.timestamp
-        uploadStatus = 0
         
         super.init()
     }
@@ -56,17 +58,17 @@ class LogRecord : Record {
 }
 
 
-public class ZeroLogger: DDAbstractLogger {
+public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
     var dbQueue: DatabaseQueue?
     var urlSession: URLSession?
     var logUploadEndpoint: URL?
+    
+    var logFailureBlock:( (_: [LogFailure]) -> Void )?
+    private static let urlSessionIdentifier = "zerofinancial.inc.logger"
 
     
     private static let dbPath: String = {
-        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path else {
-            return ""
-        }
-
+    let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path
        return documentsPath + "/loggerdb.sqlite"
     }()
     
@@ -92,7 +94,7 @@ public class ZeroLogger: DDAbstractLogger {
         }
         
         // Setup a background NSURLSessiuon
-        let backgroundConfig = URLSessionConfiguration.background(withIdentifier: "zerofinancial.inc.logger")
+        let backgroundConfig = URLSessionConfiguration.background(withIdentifier: ZeroLogger.urlSessionIdentifier)
         urlSession = URLSession(configuration: backgroundConfig)
     
         try dbQueue?.inDatabase { db in
@@ -107,7 +109,7 @@ public class ZeroLogger: DDAbstractLogger {
                 t.column("function", .text)
                 t.column("line", .integer)
                 t.column("date", .datetime)
-                t.column("upload_status", .integer).notNull().defaults(to: 0)
+                t.column("upload_task_id", .integer)
             }
         }
     }
@@ -122,23 +124,44 @@ public class ZeroLogger: DDAbstractLogger {
         }
     }
     
-    func uploadLogs() throws {
-        let logUploadRequest = URLRequest(url: URL(string: "sdffdsffds")!)
+    func flushLogs() throws {
+        guard let logUploadEndpoint = logUploadEndpoint else { return }
         try dbQueue?.inDatabase({ db in
-            let logRecords = try LogRecord.filter(Column("upload_status") == 0).fetchAll(db)
+            let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
             for record in logRecords {
                 do {
                     let jsonData = try JSONSerialization.data(withJSONObject: record.persistentDictionary, options: .prettyPrinted)
+                    let logUploadRequest = URLRequest(url: logUploadEndpoint)
                     let task = urlSession?.uploadTask(with: logUploadRequest, from: jsonData)
                     task?.resume()
                     
-                    record.uploadStatus = 1
+                    record.uploadTaskID = task?.taskIdentifier
                     try record.save(db)
                 } catch {
                     print(error.localizedDescription)
                 }
             }
         })
+    }
+    
+    public func processLogTasks(tasks: [URLSessionUploadTask]) throws {
+        var failedLogUploads: [LogFailure] = []
+        try dbQueue?.inTransaction { db in
+            for task in tasks {
+                guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { continue }
+                if let httpResponse = task.response as? HTTPURLResponse {
+                    if httpResponse.statusCode != 200 {
+                        record.uploadTaskID = nil
+                        // Tell our delegate we ran into trouble uploading the given logs
+                        let logUploadFailure = LogFailure(task: task, response: httpResponse)
+                        failedLogUploads.append(logUploadFailure)
+                    }
+                    try record.delete(db)
+                }
+            }
+
+            return .commit
+        }
     }
     
     // MARK: DDAbstractLogger Methods

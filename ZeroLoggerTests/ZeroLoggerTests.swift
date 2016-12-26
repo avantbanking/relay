@@ -9,6 +9,7 @@
 import XCTest
 import CocoaLumberjackSwift
 
+
 @testable import ZeroLogger
 
 class ZeroLoggerTests: XCTestCase {
@@ -48,5 +49,16 @@ class ZeroLoggerTests: XCTestCase {
         })
         
         waitForExpectations(timeout: 1, handler: nil)
+    }
+    
+    func testSuccessfulLogFlush() {
+        DDLogInfo("This should successfully upload")
+        DDLogWarn("This should as well")
+        DDLog.flushLog()
+        
+        try! logger?.flushLogs()
+        
+        // ...
+
     }
 }

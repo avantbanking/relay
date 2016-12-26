@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4506CBBD1E10FD0200DB9EA6 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4506CBBC1E10FD0200DB9EA6 /* TestUtils.swift */; };
 		455364741E0A07A000BF1699 /* ZeroLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553646A1E0A07A000BF1699 /* ZeroLogger.framework */; };
 		455364791E0A07A000BF1699 /* ZeroLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364781E0A07A000BF1699 /* ZeroLoggerTests.swift */; };
 		4553647B1E0A07A000BF1699 /* ZeroLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = 4553646D1E0A07A000BF1699 /* ZeroLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -29,6 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4506CBBC1E10FD0200DB9EA6 /* TestUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
 		4553646A1E0A07A000BF1699 /* ZeroLogger.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ZeroLogger.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4553646D1E0A07A000BF1699 /* ZeroLogger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZeroLogger.h; sourceTree = "<group>"; };
 		4553646E1E0A07A000BF1699 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -98,6 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				455364781E0A07A000BF1699 /* ZeroLoggerTests.swift */,
+				4506CBBC1E10FD0200DB9EA6 /* TestUtils.swift */,
 				4553647A1E0A07A000BF1699 /* Info.plist */,
 			);
 			path = ZeroLoggerTests;
@@ -273,6 +276,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				455364791E0A07A000BF1699 /* ZeroLoggerTests.swift in Sources */,
+				4506CBBD1E10FD0200DB9EA6 /* TestUtils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -488,6 +492,7 @@
 				455364801E0A07A000BF1699 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		455364811E0A07A000BF1699 /* Build configuration list for PBXNativeTarget "ZeroLoggerTests" */ = {
 			isa = XCConfigurationList;
@@ -496,6 +501,7 @@
 				455364831E0A07A000BF1699 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
