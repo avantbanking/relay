@@ -20,13 +20,16 @@ class ZeroLoggerTests: XCTestCase {
         
         try! ZeroLogger.reset()
         
-        logger = ZeroLogger()
+        do {
+            logger = try ZeroLogger(dbPath: nil)
+        } catch _ {
+            fatalError("Failed to initialize ZeroLogger!")
+        }
         
         DDLog.add(logger)
     }
     
     override func tearDown() {
-        
         super.tearDown()
     }
 
@@ -44,6 +47,6 @@ class ZeroLoggerTests: XCTestCase {
             exp.fulfill()
         })
         
-        waitForExpectations(timeout: 10.0, handler: nil)
+        waitForExpectations(timeout: 1, handler: nil)
     }
 }
