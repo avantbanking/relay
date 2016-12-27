@@ -60,11 +60,11 @@ class LogRecord : Record {
 
 public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
     var dbQueue: DatabaseQueue?
-    var urlSession: URLSession?
+    var urlSession: URLSessionProtocol
     var logUploadEndpoint: URL?
     
     var logFailureBlock:( (_: [LogFailure]) -> Void )?
-    private static let urlSessionIdentifier = "zerofinancial.inc.logger"
+    private let urlSessionIdentifier: String
 
     
     private static let dbPath: String = {
@@ -83,20 +83,28 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
     ///   - logUploadEndpoint: URL to upload logs. See the `persistentDictionary` method on `LogRecord` for information
     ///   on the payload structure.
     ///
+    ///   - session: session to use to upload the logs. If one is not provided a background session will be made
+    ///
     /// - Throws: A DatabaseError is thrown whenever an SQLite error occurs. See the GRDB documentation here
     ///   for more information: https://github.com/groue/GRDB.swift#documentation
     ///
-    required public init(dbPath: String? = ZeroLogger.dbPath, logUploadEndpoint: URL? = nil) throws {
+    required public init(dbPath: String? = ZeroLogger.dbPath, logUploadEndpoint: URL? = nil, session: URLSessionProtocol? = nil) throws {
         dbQueue = try DatabaseQueue(path: ZeroLogger.dbPath)
         
         if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path {
             print("Documents Directory: " + documentsPath)
         }
         
-        // Setup a background NSURLSessiuon
-        let backgroundConfig = URLSessionConfiguration.background(withIdentifier: ZeroLogger.urlSessionIdentifier)
-        urlSession = URLSession(configuration: backgroundConfig)
-    
+        if let session = session {
+            urlSession = session
+        } else {
+            // Setup a background NSURLSession
+            let backgroundConfig = URLSessionConfiguration.background(withIdentifier: "zerofinancial.inc.logger")
+            urlSession = URLSession(configuration: backgroundConfig)
+        }
+        
+        urlSessionIdentifier = urlSession.configuration.identifier!
+
         try dbQueue?.inDatabase { db in
             try db.create(table: "log_messages") { t in
                 t.column("id", .integer).primaryKey()
@@ -124,7 +132,7 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
-    func flushLogs() throws {
+    func flushLogs(callback: ((_ uploadedLogs: LogRecord, _ error: Error?) -> Void)?) throws {
         guard let logUploadEndpoint = logUploadEndpoint else { return }
         try dbQueue?.inDatabase({ db in
             let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
@@ -132,12 +140,15 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
                 do {
                     let jsonData = try JSONSerialization.data(withJSONObject: record.persistentDictionary, options: .prettyPrinted)
                     let logUploadRequest = URLRequest(url: logUploadEndpoint)
-                    let task = urlSession?.uploadTask(with: logUploadRequest, from: jsonData)
-                    task?.resume()
+                    let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData, completionHandler: { (_, _, _) in
+                        callback?(record, nil)
+                    })
+                    task.resume()
                     
-                    record.uploadTaskID = task?.taskIdentifier
+                    record.uploadTaskID = task.taskIdentifier
                     try record.save(db)
                 } catch {
+                    callback?(record, error)
                     print(error.localizedDescription)
                 }
             }

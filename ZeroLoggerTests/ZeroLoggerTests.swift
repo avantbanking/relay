@@ -17,17 +17,6 @@ class ZeroLoggerTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        DDLog.removeAllLoggers()
-        
-        try! ZeroLogger.reset()
-        
-        do {
-            logger = try ZeroLogger(dbPath: nil)
-        } catch _ {
-            fatalError("Failed to initialize ZeroLogger!")
-        }
-        
-        DDLog.add(logger)
     }
     
     override func tearDown() {
@@ -36,6 +25,9 @@ class ZeroLoggerTests: XCTestCase {
 
     /// Esure a log message is correctly inserted in the logger database
     func testLogger() {
+        logger = try! ZeroLogger(dbPath: nil)
+        setupLogger(logger: logger)
+
         let exp = expectation(description: "A log should be present in the log database.")
         
         DDLogInfo("hello")
@@ -52,13 +44,30 @@ class ZeroLoggerTests: XCTestCase {
     }
     
     func testSuccessfulLogFlush() {
+        let responseString = "{\"login\": \"dasdom\", \"id\": 1234567}"
+        let responseData = responseString.data(using: String.Encoding.utf8)!
+        let sessionMock = URLSessionMock(data: responseData, response: nil, error: nil)
+        
+        logger = try! ZeroLogger(dbPath: nil, session: sessionMock)
+        logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
+        setupLogger(logger: logger)
+        
         DDLogInfo("This should successfully upload")
-        DDLogWarn("This should as well")
         DDLog.flushLog()
         
-        try! logger?.flushLogs()
+        let exp = expectation(description: "No network errors should occur when flushing logs.")
+        try! logger?.flushLogs(callback: { record, error in
+            if error == nil {
+                exp.fulfill()
+            }
+        })
         
-        // ...
-
+        waitForExpectations(timeout: 1, handler: nil)
+    }
+    
+    private func setupLogger(logger: ZeroLogger?) {
+        DDLog.removeAllLoggers()
+        try! ZeroLogger.reset()
+        DDLog.add(logger)
     }
 }
