@@ -21,6 +21,7 @@ class LogRecord : Record {
     var level: Int
     var date: Date
     var uploadTaskID: Int?
+    var uploaded = false
 
     required init(row: Row) {
         uuid = row.value(named: "uuid")
@@ -29,6 +30,7 @@ class LogRecord : Record {
         level = row.value(named: "level")
         date = row.value(named: "date")
         uploadTaskID = row.value(named: "upload_task_id")
+        uploaded = row.value(named: "uploaded")
 
         super.init(row: row)
     }
@@ -48,7 +50,8 @@ class LogRecord : Record {
                 "message": message,
                 "flag": flag,
                 "level": level,
-                "date": date
+                "date": date,
+                "uploaded": uploaded
         ]
     }
     
@@ -63,6 +66,7 @@ class LogRecord : Record {
         dict["flag"] = flag
         dict["level"] = level
         dict["date"] = date.description
+        dict["uploaded"] = uploaded
         
         return dict
     }
@@ -119,9 +123,11 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
         
         urlSessionIdentifier = urlSession.configuration.identifier!
         
-        
         try dbQueue?.inDatabase { db in
-            try db.create(table: "log_messages") { t in
+            let tableName = "log_messages"
+            guard try !db.tableExists(tableName) else { return }
+
+            try db.create(table: tableName) { t in
                 t.column("id", .integer).primaryKey()
                 t.column("uuid", .text)
                 t.column("message", .text)
@@ -133,6 +139,7 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
                 t.column("line", .integer)
                 t.column("date", .datetime)
                 t.column("upload_task_id", .integer)
+                t.column("uploaded", .boolean).notNull().defaults(to: false)
             }
         }
     }
@@ -147,7 +154,7 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
-    func flushLogs(callback: ((_ uploadedLogs: LogRecord, _ error: Error?) -> Void)?) throws {
+    func flushLogs(callback: ((_ flushedLog: LogRecord, _ error: Error?, _ db: GRDB.Database) -> Void)? = nil) throws {
         guard let logUploadEndpoint = logUploadEndpoint else { return }
         try dbQueue?.inDatabase({ db in
             let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
@@ -156,14 +163,16 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
                     let jsonData = try JSONSerialization.data(withJSONObject: record.dict(), options: .prettyPrinted)
                     let logUploadRequest = URLRequest(url: logUploadEndpoint)
                     let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData, completionHandler: { (_, _, _) in
-                        callback?(record, nil)
+                        record.uploaded = true
+                        callback?(record, nil, db)
                     })
                     task.resume()
                     
                     record.uploadTaskID = task.taskIdentifier
                     try record.save(db)
                 } catch {
-                    callback?(record, error)
+                    
+                    callback?(record, error, db)
                 }
             }
         })
@@ -193,6 +202,7 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
 
     override public func log(message logMessage: DDLogMessage!) {
         // Generate a LogRecord from a LogMessage
+        print("WWWWWW")
         let logRecord = LogRecord(logMessage: logMessage)
         try! dbQueue?.inDatabase({ db in
             try logRecord.insert(db)

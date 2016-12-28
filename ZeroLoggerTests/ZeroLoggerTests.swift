@@ -17,16 +17,22 @@ class ZeroLoggerTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
+
+        let documentsDiretory = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
+        let dbPath = documentsDiretory + "/loggerdb.sqlite"
+        if FileManager.default.fileExists(atPath: dbPath) {
+            try! FileManager.default.removeItem(atPath: dbPath)
+        }
     }
     
     override func tearDown() {
         super.tearDown()
-        try! logger?.reset()
     }
 
     /// Esure a log message is correctly inserted in the logger database
     func testLogger() {
         logger = try! ZeroLogger(dbPath: nil)
+
         setupLogger(logger: logger)
 
         let exp = expectation(description: "A log should be present in the log database.")
@@ -45,11 +51,11 @@ class ZeroLoggerTests: XCTestCase {
     }
     
     func testSuccessfulLogFlush() {
-        let responseString = "{\"login\": \"dasdom\", \"id\": 1234567}"
-        let responseData = responseString.data(using: String.Encoding.utf8)!
-        let sessionMock = URLSessionMock(data: responseData, response: nil, error: nil)
+        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
+        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
         logger = try! ZeroLogger(dbPath: nil, session: sessionMock)
+
         logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
         setupLogger(logger: logger)
         
@@ -57,10 +63,10 @@ class ZeroLoggerTests: XCTestCase {
         DDLog.flushLog()
         
         let exp = expectation(description: "No network errors should occur when flushing logs.")
-        try! logger?.flushLogs(callback: { record, error in
-            if error == nil {
-                exp.fulfill()
-            }
+        try! logger?.flushLogs(callback: { record, error, db in
+            // ensure the log was uploaded.
+            XCTAssertTrue(record.uploaded, "Log should have successfully been uploaded.")
+            exp.fulfill()
         })
         
         waitForExpectations(timeout: 1, handler: nil)
