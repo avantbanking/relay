@@ -27,37 +27,41 @@ public final class URLSessionMock : URLSessionProtocol {
     
     var url: URL?
     var request: URLRequest?
-    private let taskMock: URLSessionTask
+    var taskResponse: (Data?, URLResponse?, Error?)?
     
     public init(data: Data?, response: URLResponse?, error: Error?) {
-        let dataTaskMock = URLSessionDataTaskMock()
-        dataTaskMock.taskResponse = (data, response, error)
-        
-        self.taskMock = dataTaskMock
+        taskResponse = (data, response, error)
     }
     
     public func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Swift.Void) -> URLSessionDataTask {
-        let dataTaskMock = taskMock as! URLSessionDataTaskMock
         self.url = url
+        let dataTaskMock = URLSessionDataTaskMock()
+        dataTaskMock.taskResponse = taskResponse
         dataTaskMock.completionHandler = completionHandler
 
         return dataTaskMock
     }
 
-    public func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Swift.Void) -> URLSessionDataTask {
+    public func dataTask(with request: URLRequest,
+                         completionHandler: @escaping (Data?, URLResponse?, Error?) -> Swift.Void) -> URLSessionDataTask {
         self.request = request
-        let dataTaskMock = taskMock as! URLSessionDataTaskMock
-        dataTaskMock.completionHandler = completionHandler
-    
-        return dataTaskMock
-    }
-    
-
-    public func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Swift.Void) -> URLSessionUploadTask {
-        self.request = request
-        let uploadTaskMock = taskMock as! URLSessionUploadTaskMock
-        uploadTaskMock.completionHandler = completionHandler
         
+        let dataTaskMock = URLSessionDataTaskMock()
+        dataTaskMock.taskResponse = taskResponse
+        dataTaskMock.completionHandler = completionHandler
+    
+        return dataTaskMock
+    }
+    
+
+    public func uploadTask(with request: URLRequest, from bodyData: Data?,
+                           completionHandler: @escaping (Data?, URLResponse?, Error?) -> Swift.Void) -> URLSessionUploadTask {
+        self.request = request
+        
+        let uploadTaskMock = URLSessionUploadTaskMock()
+        uploadTaskMock.taskResponse = taskResponse
+        uploadTaskMock.completionHandler = completionHandler
+    
         return uploadTaskMock
     }
 
@@ -77,6 +81,9 @@ public final class URLSessionMock : URLSessionProtocol {
         typealias CompletionHandler = (Data?, URLResponse?, Error?) -> Void
         var completionHandler: CompletionHandler?
         var taskResponse: (Data?, URLResponse?, Error?)?
+        
+        override var taskIdentifier: Int { return 0 }
+
         
         override func resume() {
             completionHandler?(taskResponse?.0, taskResponse?.1, taskResponse?.2)

@@ -21,6 +21,7 @@ class ZeroLoggerTests: XCTestCase {
     
     override func tearDown() {
         super.tearDown()
+        try! logger?.reset()
     }
 
     /// Esure a log message is correctly inserted in the logger database
@@ -67,7 +68,6 @@ class ZeroLoggerTests: XCTestCase {
     
     private func setupLogger(logger: ZeroLogger?) {
         DDLog.removeAllLoggers()
-        try! ZeroLogger.reset()
         DDLog.add(logger)
     }
 }

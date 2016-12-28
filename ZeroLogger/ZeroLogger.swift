@@ -55,6 +55,17 @@ class LogRecord : Record {
     override class var databaseTableName: String {
         return "log_messages"
     }
+    
+    func dict() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        dict["uuid"] = uuid
+        dict["message"] = message
+        dict["flag"] = flag
+        dict["level"] = level
+        dict["date"] = date.description
+        
+        return dict
+    }
 }
 
 
@@ -65,12 +76,10 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
     
     var logFailureBlock:( (_: [LogFailure]) -> Void )?
     private let urlSessionIdentifier: String
+    private let databasePath: String
 
     
-    private static let dbPath: String = {
-    let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path
-       return documentsPath + "/loggerdb.sqlite"
-    }()
+    private static let defaultDBPath: String = "Documents/loggerdb.sqlite"
     
 
     /// Initializes the logger using GRDB to interface with SQLite, and your standard URLSession for uploading
@@ -88,8 +97,13 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
     /// - Throws: A DatabaseError is thrown whenever an SQLite error occurs. See the GRDB documentation here
     ///   for more information: https://github.com/groue/GRDB.swift#documentation
     ///
-    required public init(dbPath: String? = ZeroLogger.dbPath, logUploadEndpoint: URL? = nil, session: URLSessionProtocol? = nil) throws {
-        dbQueue = try DatabaseQueue(path: ZeroLogger.dbPath)
+    required public init(dbPath: String?, logUploadEndpoint: URL? = nil, session: URLSessionProtocol? = nil) throws {
+        if let dbPath = dbPath {
+            databasePath = dbPath
+        } else {
+            databasePath = ZeroLogger.defaultDBPath
+        }
+        dbQueue = try DatabaseQueue(path: databasePath)
         
         if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path {
             print("Documents Directory: " + documentsPath)
@@ -104,7 +118,8 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
         }
         
         urlSessionIdentifier = urlSession.configuration.identifier!
-
+        
+        
         try dbQueue?.inDatabase { db in
             try db.create(table: "log_messages") { t in
                 t.column("id", .integer).primaryKey()
@@ -126,9 +141,9 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
         fatalError("Please use init(dbPath:) instead.")
     }
     
-    static func reset() throws {
-        if FileManager.default.fileExists(atPath: ZeroLogger.dbPath) {
-            try FileManager.default.removeItem(atPath: ZeroLogger.dbPath)
+    func reset() throws {
+        if FileManager.default.fileExists(atPath: databasePath) {
+            try FileManager.default.removeItem(atPath: databasePath)
         }
     }
     
@@ -138,7 +153,7 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
             let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
             for record in logRecords {
                 do {
-                    let jsonData = try JSONSerialization.data(withJSONObject: record.persistentDictionary, options: .prettyPrinted)
+                    let jsonData = try JSONSerialization.data(withJSONObject: record.dict(), options: .prettyPrinted)
                     let logUploadRequest = URLRequest(url: logUploadEndpoint)
                     let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData, completionHandler: { (_, _, _) in
                         callback?(record, nil)
@@ -149,7 +164,6 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
                     try record.save(db)
                 } catch {
                     callback?(record, error)
-                    print(error.localizedDescription)
                 }
             }
         })
