@@ -162,16 +162,15 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
                 do {
                     let jsonData = try JSONSerialization.data(withJSONObject: record.dict(), options: .prettyPrinted)
                     let logUploadRequest = URLRequest(url: logUploadEndpoint)
-                    let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData, completionHandler: { (_, _, _) in
-                        record.uploaded = true
-                        callback?(record, nil, db)
+                    let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData, completionHandler: { data, response, error in
+                        record.uploaded = error == nil
+                        callback?(record, error, db)
                     })
                     task.resume()
                     
                     record.uploadTaskID = task.taskIdentifier
                     try record.save(db)
                 } catch {
-                    
                     callback?(record, error, db)
                 }
             }
@@ -202,7 +201,6 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
 
     override public func log(message logMessage: DDLogMessage!) {
         // Generate a LogRecord from a LogMessage
-        print("WWWWWW")
         let logRecord = LogRecord(logMessage: logMessage)
         try! dbQueue?.inDatabase({ db in
             try logRecord.insert(db)
