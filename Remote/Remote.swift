@@ -1,6 +1,6 @@
 //
-//  ZeroLogger.swift
-//  ZeroLogger
+//  Remote.swift
+//  Remote
 //
 //  Created by Evan Kimia on 12/20/16.
 //  Copyright © 2016 zero. All rights reserved.
@@ -85,7 +85,7 @@ class LogRecord : Record {
 }
 
 
-public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
+public class Remote: DDAbstractLogger, URLSessionTaskDelegate {
     var identifier: String
     var dbQueue: DatabaseQueue?
     var urlSession: URLSessionProtocol

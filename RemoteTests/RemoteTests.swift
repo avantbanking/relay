@@ -1,6 +1,6 @@
 //
-//  ZeroLoggerTests.swift
-//  ZeroLoggerTests
+//  RemoteTests.swift
+//  RemoteTests
 //
 //  Created by Evan Kimia on 12/20/16.
 //  Copyright © 2016 zero. All rights reserved.
@@ -10,10 +10,10 @@ import XCTest
 import CocoaLumberjackSwift
 
 
-@testable import ZeroLogger
+@testable import Remote
 
-class ZeroLoggerTests: XCTestCase {
-    private var logger: ZeroLogger?
+class RemoteTests: XCTestCase {
+    private var logger: Remote?
     
     override func setUp() {
         super.setUp()
@@ -31,7 +31,7 @@ class ZeroLoggerTests: XCTestCase {
 
     /// Esure a log message is correctly inserted in the logger database
     func testLogger() {
-        logger = try! ZeroLogger(identifier:"loggerTests")
+        logger = try! Remote(identifier:"loggerTests")
 
         setupLogger(logger: logger)
 
@@ -54,7 +54,7 @@ class ZeroLoggerTests: XCTestCase {
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
-        logger = try! ZeroLogger(identifier:"loggerTests", session: sessionMock)
+        logger = try! Remote(identifier:"loggerTests", session: sessionMock)
         
         logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
         setupLogger(logger: logger)
@@ -77,7 +77,7 @@ class ZeroLoggerTests: XCTestCase {
         let error = NSError(domain: "loggerTest", code: 5, userInfo: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: error)
         
-        logger = try! ZeroLogger(identifier:"loggerTests", session: sessionMock)
+        logger = try! Remote(identifier:"loggerTests", session: sessionMock)
         
         logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
         setupLogger(logger: logger)
@@ -95,7 +95,7 @@ class ZeroLoggerTests: XCTestCase {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
-    private func setupLogger(logger: ZeroLogger?) {
+    private func setupLogger(logger: Remote?) {
         DDLog.removeAllLoggers()
         DDLog.add(logger)
     }

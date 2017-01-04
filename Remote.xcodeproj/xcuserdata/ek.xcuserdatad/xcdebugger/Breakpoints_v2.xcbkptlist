@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ZeroLogger/ZeroLogger.swift"
+            timestampString = "504584815.079174"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "81"
+            endingLineNumber = "81"
+            landmarkName = "dict()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "ZeroLogger.ZeroLogger.init (dbPath : Swift.String, logUploadEndpoint : Swift.Optional&lt;Foundation.URL&gt;, session : Swift.Optional&lt;ZeroLogger.URLSessionProtocol&gt;) throws -&gt; ZeroLogger.ZeroLogger"
+                  moduleName = "ZeroLogger"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ek/zero/ZeroLogger/ZeroLogger/ZeroLogger.swift"
+                  timestampString = "504511931.08901"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "66"
+                  endingLineNumber = "66"
+                  offsetFromSymbolStart = "143">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "ZeroLogger.ZeroLogger.init () -&gt; ZeroLogger.ZeroLogger"
+                  moduleName = "ZeroLogger"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ek/zero/ZeroLogger/ZeroLogger/ZeroLogger.swift"
+                  timestampString = "504511931.091702"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "66"
+                  endingLineNumber = "66"
+                  offsetFromSymbolStart = "88">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "ZeroLogger.ZeroLogger.logFailureBlock.getter : Swift.Optional&lt;(Swift.Array&lt;(task : __ObjC.URLSessionUploadTask, response : __ObjC.HTTPURLResponse)&gt;) -&gt; ()&gt;"
+                  moduleName = "ZeroLogger"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ek/zero/ZeroLogger/ZeroLogger/ZeroLogger.swift"
+                  timestampString = "504511931.093524"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "66"
+                  endingLineNumber = "66"
+                  offsetFromSymbolStart = "51">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "ZeroLogger.ZeroLogger.logFailureBlock.setter : Swift.Optional&lt;(Swift.Array&lt;(task : __ObjC.URLSessionUploadTask, response : __ObjC.HTTPURLResponse)&gt;) -&gt; ()&gt;"
+                  moduleName = "ZeroLogger"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ek/zero/ZeroLogger/ZeroLogger/ZeroLogger.swift"
+                  timestampString = "504511931.095035"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "66"
+                  endingLineNumber = "66"
+                  offsetFromSymbolStart = "103">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.SwiftErrorBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.ExceptionBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            scope = "0"
+            stopOnStyle = "0">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ZeroLoggerTests/ZeroLoggerTests.swift"
+            timestampString = "504583368.672568"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "68"
+            endingLineNumber = "68"
+            landmarkName = "testSuccessfulLogFlush()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "ZeroLoggerTests.ZeroLoggerTests.(testSuccessfulLogFlush () -&gt; ()).(closure #1)"
+                  moduleName = "ZeroLoggerTests"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ek/zero/ZeroLogger/ZeroLoggerTests/ZeroLoggerTests.swift"
+                  timestampString = "504583286.974375"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "69"
+                  endingLineNumber = "69"
+                  offsetFromSymbolStart = "153">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "ZeroLoggerTests.ZeroLoggerTests.(testSuccessfulLogFlush () -&gt; ()).(closure #1).(implicit closure #1)"
+                  moduleName = "ZeroLoggerTests"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ek/zero/ZeroLogger/ZeroLoggerTests/ZeroLoggerTests.swift"
+                  timestampString = "504583286.97691"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "69"
+                  endingLineNumber = "69"
+                  offsetFromSymbolStart = "12">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "ZeroLoggerTests.ZeroLoggerTests.(testSuccessfulLogFlush () -&gt; ()).(closure #1).(implicit closure #2)"
+                  moduleName = "ZeroLoggerTests"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ek/zero/ZeroLogger/ZeroLoggerTests/ZeroLoggerTests.swift"
+                  timestampString = "504583286.978843"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "69"
+                  endingLineNumber = "69"
+                  offsetFromSymbolStart = "12">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>

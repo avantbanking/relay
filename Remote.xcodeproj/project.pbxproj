@@ -8,10 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */; };
-		455364741E0A07A000BF1699 /* ZeroLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553646A1E0A07A000BF1699 /* ZeroLogger.framework */; };
-		455364791E0A07A000BF1699 /* ZeroLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364781E0A07A000BF1699 /* ZeroLoggerTests.swift */; };
-		4553647B1E0A07A000BF1699 /* ZeroLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = 4553646D1E0A07A000BF1699 /* ZeroLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		455364871E0A098D00BF1699 /* ZeroLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364861E0A098D00BF1699 /* ZeroLogger.swift */; };
+		455364741E0A07A000BF1699 /* Remote.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553646A1E0A07A000BF1699 /* Remote.framework */; };
+		455364791E0A07A000BF1699 /* RemoteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364781E0A07A000BF1699 /* RemoteTests.swift */; };
+		4553647B1E0A07A000BF1699 /* Remote.h in Headers */ = {isa = PBXBuildFile; fileRef = 4553646D1E0A07A000BF1699 /* Remote.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		455364871E0A098D00BF1699 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364861E0A098D00BF1699 /* Remote.swift */; };
 		4553648A1E0A0B2500BF1699 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 455364891E0A0B2500BF1699 /* GRDB.framework */; };
 		4553648C1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */; };
 		4553648D1E0A0D5700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */; };
@@ -24,20 +24,20 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 455364611E0A07A000BF1699 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 455364691E0A07A000BF1699;
-			remoteInfo = ZeroLogger;
+			RemoteGlobalIDString = 455364691E0A07A000BF1699;
+			RemoteInfo = Remote;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = URLSessionMock.swift; path = ZeroLoggerTests/URLSessionMock.swift; sourceTree = SOURCE_ROOT; };
-		4553646A1E0A07A000BF1699 /* ZeroLogger.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ZeroLogger.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		4553646D1E0A07A000BF1699 /* ZeroLogger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZeroLogger.h; sourceTree = "<group>"; };
+		4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = URLSessionMock.swift; path = RemoteTests/URLSessionMock.swift; sourceTree = SOURCE_ROOT; };
+		4553646A1E0A07A000BF1699 /* Remote.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Remote.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		4553646D1E0A07A000BF1699 /* Remote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Remote.h; sourceTree = "<group>"; };
 		4553646E1E0A07A000BF1699 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		455364731E0A07A000BF1699 /* ZeroLoggerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZeroLoggerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		455364781E0A07A000BF1699 /* ZeroLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZeroLoggerTests.swift; sourceTree = "<group>"; };
+		455364731E0A07A000BF1699 /* RemoteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RemoteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		455364781E0A07A000BF1699 /* RemoteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTests.swift; sourceTree = "<group>"; };
 		4553647A1E0A07A000BF1699 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		455364861E0A098D00BF1699 /* ZeroLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZeroLogger.swift; sourceTree = "<group>"; };
+		455364861E0A098D00BF1699 /* Remote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
 		455364891E0A0B2500BF1699 /* GRDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GRDB.framework; path = Carthage/Build/iOS/GRDB.framework; sourceTree = "<group>"; };
 		4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaLumberjackSwift.framework; path = Carthage/Build/iOS/CocoaLumberjackSwift.framework; sourceTree = "<group>"; };
 		455364901E0A0F2400BF1699 /* CocoaLumberjack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaLumberjack.framework; path = Carthage/Build/iOS/CocoaLumberjack.framework; sourceTree = "<group>"; };
@@ -57,7 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				455364741E0A07A000BF1699 /* ZeroLogger.framework in Frameworks */,
+				455364741E0A07A000BF1699 /* Remote.framework in Frameworks */,
 				455364911E0A0F2400BF1699 /* CocoaLumberjack.framework in Frameworks */,
 				4553648D1E0A0D5700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */,
 				4553648E1E0A0D5700BF1699 /* GRDB.framework in Frameworks */,
@@ -70,8 +70,8 @@
 		455364601E0A07A000BF1699 = {
 			isa = PBXGroup;
 			children = (
-				4553646C1E0A07A000BF1699 /* ZeroLogger */,
-				455364771E0A07A000BF1699 /* ZeroLoggerTests */,
+				4553646C1E0A07A000BF1699 /* Remote */,
+				455364771E0A07A000BF1699 /* RemoteTests */,
 				4553646B1E0A07A000BF1699 /* Products */,
 				455364881E0A0B2400BF1699 /* Frameworks */,
 			);
@@ -80,30 +80,30 @@
 		4553646B1E0A07A000BF1699 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4553646A1E0A07A000BF1699 /* ZeroLogger.framework */,
-				455364731E0A07A000BF1699 /* ZeroLoggerTests.xctest */,
+				4553646A1E0A07A000BF1699 /* Remote.framework */,
+				455364731E0A07A000BF1699 /* RemoteTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		4553646C1E0A07A000BF1699 /* ZeroLogger */ = {
+		4553646C1E0A07A000BF1699 /* Remote */ = {
 			isa = PBXGroup;
 			children = (
-				4553646D1E0A07A000BF1699 /* ZeroLogger.h */,
+				4553646D1E0A07A000BF1699 /* Remote.h */,
 				4553646E1E0A07A000BF1699 /* Info.plist */,
 				4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */,
-				455364861E0A098D00BF1699 /* ZeroLogger.swift */,
+				455364861E0A098D00BF1699 /* Remote.swift */,
 			);
-			path = ZeroLogger;
+			path = Remote;
 			sourceTree = "<group>";
 		};
-		455364771E0A07A000BF1699 /* ZeroLoggerTests */ = {
+		455364771E0A07A000BF1699 /* RemoteTests */ = {
 			isa = PBXGroup;
 			children = (
-				455364781E0A07A000BF1699 /* ZeroLoggerTests.swift */,
+				455364781E0A07A000BF1699 /* RemoteTests.swift */,
 				4553647A1E0A07A000BF1699 /* Info.plist */,
 			);
-			path = ZeroLoggerTests;
+			path = RemoteTests;
 			sourceTree = "<group>";
 		};
 		455364881E0A0B2400BF1699 /* Frameworks */ = {
@@ -123,16 +123,16 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4553647B1E0A07A000BF1699 /* ZeroLogger.h in Headers */,
+				4553647B1E0A07A000BF1699 /* Remote.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		455364691E0A07A000BF1699 /* ZeroLogger */ = {
+		455364691E0A07A000BF1699 /* Remote */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4553647E1E0A07A000BF1699 /* Build configuration list for PBXNativeTarget "ZeroLogger" */;
+			buildConfigurationList = 4553647E1E0A07A000BF1699 /* Build configuration list for PBXNativeTarget "Remote" */;
 			buildPhases = (
 				455364651E0A07A000BF1699 /* Sources */,
 				455364661E0A07A000BF1699 /* Frameworks */,
@@ -144,14 +144,14 @@
 			);
 			dependencies = (
 			);
-			name = ZeroLogger;
-			productName = ZeroLogger;
-			productReference = 4553646A1E0A07A000BF1699 /* ZeroLogger.framework */;
+			name = Remote;
+			productName = Remote;
+			productReference = 4553646A1E0A07A000BF1699 /* Remote.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		455364721E0A07A000BF1699 /* ZeroLoggerTests */ = {
+		455364721E0A07A000BF1699 /* RemoteTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 455364811E0A07A000BF1699 /* Build configuration list for PBXNativeTarget "ZeroLoggerTests" */;
+			buildConfigurationList = 455364811E0A07A000BF1699 /* Build configuration list for PBXNativeTarget "RemoteTests" */;
 			buildPhases = (
 				4553646F1E0A07A000BF1699 /* Sources */,
 				455364701E0A07A000BF1699 /* Frameworks */,
@@ -163,9 +163,9 @@
 			dependencies = (
 				455364761E0A07A000BF1699 /* PBXTargetDependency */,
 			);
-			name = ZeroLoggerTests;
-			productName = ZeroLoggerTests;
-			productReference = 455364731E0A07A000BF1699 /* ZeroLoggerTests.xctest */;
+			name = RemoteTests;
+			productName = RemoteTests;
+			productReference = 455364731E0A07A000BF1699 /* RemoteTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -191,7 +191,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 455364641E0A07A000BF1699 /* Build configuration list for PBXProject "ZeroLogger" */;
+			buildConfigurationList = 455364641E0A07A000BF1699 /* Build configuration list for PBXProject "Remote" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -203,8 +203,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				455364691E0A07A000BF1699 /* ZeroLogger */,
-				455364721E0A07A000BF1699 /* ZeroLoggerTests */,
+				455364691E0A07A000BF1699 /* Remote */,
+				455364721E0A07A000BF1699 /* RemoteTests */,
 			);
 		};
 /* End PBXProject section */
@@ -267,7 +267,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				455364871E0A098D00BF1699 /* ZeroLogger.swift in Sources */,
+				455364871E0A098D00BF1699 /* Remote.swift in Sources */,
 				4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -276,7 +276,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				455364791E0A07A000BF1699 /* ZeroLoggerTests.swift in Sources */,
+				455364791E0A07A000BF1699 /* RemoteTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -285,7 +285,7 @@
 /* Begin PBXTargetDependency section */
 		455364761E0A07A000BF1699 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 455364691E0A07A000BF1699 /* ZeroLogger */;
+			target = 455364691E0A07A000BF1699 /* Remote */;
 			targetProxy = 455364751E0A07A000BF1699 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -404,10 +404,10 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
-				INFOPLIST_FILE = ZeroLogger/Info.plist;
+				INFOPLIST_FILE = Remote/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.ZeroLogger;
+				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.Remote;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -429,10 +429,10 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
-				INFOPLIST_FILE = ZeroLogger/Info.plist;
+				INFOPLIST_FILE = Remote/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.ZeroLogger;
+				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.Remote;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 3.0;
@@ -448,9 +448,9 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
-				INFOPLIST_FILE = ZeroLoggerTests/Info.plist;
+				INFOPLIST_FILE = RemoteTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.ZeroLoggerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.RemoteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};
@@ -465,9 +465,9 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
-				INFOPLIST_FILE = ZeroLoggerTests/Info.plist;
+				INFOPLIST_FILE = RemoteTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.ZeroLoggerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.RemoteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};
@@ -476,7 +476,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		455364641E0A07A000BF1699 /* Build configuration list for PBXProject "ZeroLogger" */ = {
+		455364641E0A07A000BF1699 /* Build configuration list for PBXProject "Remote" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4553647C1E0A07A000BF1699 /* Debug */,
@@ -485,7 +485,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4553647E1E0A07A000BF1699 /* Build configuration list for PBXNativeTarget "ZeroLogger" */ = {
+		4553647E1E0A07A000BF1699 /* Build configuration list for PBXNativeTarget "Remote" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4553647F1E0A07A000BF1699 /* Debug */,
@@ -494,7 +494,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		455364811E0A07A000BF1699 /* Build configuration list for PBXNativeTarget "ZeroLoggerTests" */ = {
+		455364811E0A07A000BF1699 /* Build configuration list for PBXNativeTarget "RemoteTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				455364821E0A07A000BF1699 /* Debug */,

@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "455364691E0A07A000BF1699"
-               BuildableName = "ZeroLogger.framework"
-               BlueprintName = "ZeroLogger"
-               ReferencedContainer = "container:ZeroLogger.xcodeproj">
+               BuildableName = "Remote.framework"
+               BlueprintName = "Remote"
+               ReferencedContainer = "container:Remote.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "455364721E0A07A000BF1699"
-               BuildableName = "ZeroLoggerTests.xctest"
-               BlueprintName = "ZeroLoggerTests"
-               ReferencedContainer = "container:ZeroLogger.xcodeproj">
+               BuildableName = "RemoteTests.xctest"
+               BlueprintName = "RemoteTests"
+               ReferencedContainer = "container:Remote.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -43,9 +43,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "455364691E0A07A000BF1699"
-            BuildableName = "ZeroLogger.framework"
-            BlueprintName = "ZeroLogger"
-            ReferencedContainer = "container:ZeroLogger.xcodeproj">
+            BuildableName = "Remote.framework"
+            BlueprintName = "Remote"
+            ReferencedContainer = "container:Remote.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -65,9 +65,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "455364691E0A07A000BF1699"
-            BuildableName = "ZeroLogger.framework"
-            BlueprintName = "ZeroLogger"
-            ReferencedContainer = "container:ZeroLogger.xcodeproj">
+            BuildableName = "Remote.framework"
+            BlueprintName = "Remote"
+            ReferencedContainer = "container:Remote.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -83,9 +83,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "455364691E0A07A000BF1699"
-            BuildableName = "ZeroLogger.framework"
-            BlueprintName = "ZeroLogger"
-            ReferencedContainer = "container:ZeroLogger.xcodeproj">
+            BuildableName = "Remote.framework"
+            BlueprintName = "Remote"
+            ReferencedContainer = "container:Remote.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
