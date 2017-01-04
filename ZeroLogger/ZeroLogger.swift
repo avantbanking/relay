@@ -16,12 +16,15 @@ typealias LogFailure = (task: URLSessionUploadTask, response: HTTPURLResponse)
 
 class LogRecord : Record {
     var uuid: String
+    let tableName: String
     var message: String
     var flag: Int
     var level: Int
     var date: Date
     var uploadTaskID: Int?
     var uploaded = false
+    
+    static var tableName: String?
 
     required init(row: Row) {
         uuid = row.value(named: "uuid")
@@ -31,6 +34,8 @@ class LogRecord : Record {
         date = row.value(named: "date")
         uploadTaskID = row.value(named: "upload_task_id")
         uploaded = row.value(named: "uploaded")
+        
+        tableName = "log_message"
 
         super.init(row: row)
     }
@@ -41,6 +46,8 @@ class LogRecord : Record {
         flag = Int(logMessage.flag.rawValue)
         level = Int(logMessage.level.rawValue)
         date = logMessage.timestamp
+        
+        tableName = "log_message"
         
         super.init()
     }
@@ -56,7 +63,12 @@ class LogRecord : Record {
     }
     
     override class var databaseTableName: String {
-        return "log_messages"
+        if let tableName = tableName {
+            return tableName
+        } else {
+            // Log a warning
+            return "log_messages"
+        }
     }
     
     func dict() -> [String: Any] {
@@ -74,16 +86,14 @@ class LogRecord : Record {
 
 
 public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
+    var identifier: String
     var dbQueue: DatabaseQueue?
     var urlSession: URLSessionProtocol
     var logUploadEndpoint: URL?
     
     var logFailureBlock:( (_: [LogFailure]) -> Void )?
     private let urlSessionIdentifier: String
-    private let databasePath: String
-
-    
-    private static let defaultDBPath: String = "Documents/loggerdb.sqlite"
+    private let dbPath: String = "Documents/loggerdb.sqlite"
     
 
     /// Initializes the logger using GRDB to interface with SQLite, and your standard URLSession for uploading
@@ -101,13 +111,13 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
     /// - Throws: A DatabaseError is thrown whenever an SQLite error occurs. See the GRDB documentation here
     ///   for more information: https://github.com/groue/GRDB.swift#documentation
     ///
-    required public init(dbPath: String?, logUploadEndpoint: URL? = nil, session: URLSessionProtocol? = nil) throws {
-        if let dbPath = dbPath {
-            databasePath = dbPath
-        } else {
-            databasePath = ZeroLogger.defaultDBPath
-        }
-        dbQueue = try DatabaseQueue(path: databasePath)
+    required public init(identifier: String, logUploadEndpoint: URL? = nil, session: URLSessionProtocol? = nil) throws {
+        
+        LogRecord.tableName = identifier
+        self.identifier = identifier
+        self.logUploadEndpoint = logUploadEndpoint
+
+        dbQueue = try DatabaseQueue(path: dbPath)
         
         if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path {
             print("Documents Directory: " + documentsPath)
@@ -124,10 +134,9 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
         urlSessionIdentifier = urlSession.configuration.identifier!
         
         try dbQueue?.inDatabase { db in
-            let tableName = "log_messages"
-            guard try !db.tableExists(tableName) else { return }
+            guard try !db.tableExists(identifier) else { return }
 
-            try db.create(table: tableName) { t in
+            try db.create(table: identifier) { t in
                 t.column("id", .integer).primaryKey()
                 t.column("uuid", .text)
                 t.column("message", .text)
@@ -149,9 +158,9 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
     func reset() throws {
-        if FileManager.default.fileExists(atPath: databasePath) {
-            try FileManager.default.removeItem(atPath: databasePath)
-        }
+        try dbQueue?.inDatabase({ db in
+            try db.drop(table: identifier)
+        })
     }
     
     func flushLogs(callback: ((_ flushedLog: LogRecord, _ error: Error?, _ db: GRDB.Database) -> Void)? = nil) throws {
@@ -177,7 +186,7 @@ public class ZeroLogger: DDAbstractLogger, URLSessionTaskDelegate {
         })
     }
     
-    public func processLogTasks(tasks: [URLSessionUploadTask]) throws {
+    public func processLogUploadTasks(tasks: [URLSessionUploadTask]) throws {
         var failedLogUploads: [LogFailure] = []
         try dbQueue?.inTransaction { db in
             for task in tasks {

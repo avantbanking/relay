@@ -31,7 +31,7 @@ class ZeroLoggerTests: XCTestCase {
 
     /// Esure a log message is correctly inserted in the logger database
     func testLogger() {
-        logger = try! ZeroLogger(dbPath: nil)
+        logger = try! ZeroLogger(identifier:"loggerTests")
 
         setupLogger(logger: logger)
 
@@ -54,7 +54,7 @@ class ZeroLoggerTests: XCTestCase {
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
-        logger = try! ZeroLogger(dbPath: nil, session: sessionMock)
+        logger = try! ZeroLogger(identifier:"loggerTests", session: sessionMock)
         
         logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
         setupLogger(logger: logger)
@@ -77,7 +77,7 @@ class ZeroLoggerTests: XCTestCase {
         let error = NSError(domain: "loggerTest", code: 5, userInfo: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: error)
         
-        logger = try! ZeroLogger(dbPath: nil, session: sessionMock)
+        logger = try! ZeroLogger(identifier:"loggerTests", session: sessionMock)
         
         logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
         setupLogger(logger: logger)
