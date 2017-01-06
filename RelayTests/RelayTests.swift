@@ -53,10 +53,10 @@ class RelayTests: XCTestCase {
     func testSuccessfulLogFlush() {
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
+        let config = RelayRemoteConfiguration(host: URL(string: "https://thisdoesntmatter.com/logs")!)
         
-        logger = try! Relay(identifier:"loggerTests", session: sessionMock)
+        logger = try! Relay(identifier:"loggerTests", configuration: config, session: sessionMock)
         
-        logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
         setupLogger(logger: logger)
         
         DDLogInfo("This should successfully upload")
@@ -76,10 +76,10 @@ class RelayTests: XCTestCase {
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 500, httpVersion: nil, headerFields: nil)
         let error = NSError(domain: "loggerTest", code: 5, userInfo: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: error)
+        let config = RelayRemoteConfiguration(host: URL(string: "https://thisdoesntmatter.com/logs")!)
+
+        logger = try! Relay(identifier:"loggerTests", configuration: config, session: sessionMock)
         
-        logger = try! Relay(identifier:"loggerTests", session: sessionMock)
-        
-        logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
         setupLogger(logger: logger)
         
         DDLogInfo("This should fail to upload")

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */; };
+		45422F9A1E1F9894001CDA37 /* RelayRemoteConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45422F991E1F9894001CDA37 /* RelayRemoteConfiguration.swift */; };
 		455364741E0A07A000BF1699 /* Relay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553646A1E0A07A000BF1699 /* Relay.framework */; };
 		455364791E0A07A000BF1699 /* RelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364781E0A07A000BF1699 /* RelayTests.swift */; };
 		4553647B1E0A07A000BF1699 /* Relay.h in Headers */ = {isa = PBXBuildFile; fileRef = 4553646D1E0A07A000BF1699 /* Relay.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -29,6 +30,7 @@
 
 /* Begin PBXFileReference section */
 		4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = URLSessionMock.swift; path = RelayTests/URLSessionMock.swift; sourceTree = SOURCE_ROOT; };
+		45422F991E1F9894001CDA37 /* RelayRemoteConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RelayRemoteConfiguration.swift; sourceTree = "<group>"; };
 		4553646A1E0A07A000BF1699 /* Relay.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Relay.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4553646D1E0A07A000BF1699 /* Relay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Relay.h; sourceTree = "<group>"; };
 		4553646E1E0A07A000BF1699 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -90,9 +92,9 @@
 				4553646D1E0A07A000BF1699 /* Relay.h */,
 				4553646E1E0A07A000BF1699 /* Info.plist */,
 				4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */,
+				45422F991E1F9894001CDA37 /* RelayRemoteConfiguration.swift */,
 				455364861E0A098D00BF1699 /* Relay.swift */,
 			);
-			name = Relay;
 			path = Relay;
 			sourceTree = "<group>";
 		};
@@ -102,7 +104,6 @@
 				455364781E0A07A000BF1699 /* RelayTests.swift */,
 				4553647A1E0A07A000BF1699 /* Info.plist */,
 			);
-			name = RelayTests;
 			path = RelayTests;
 			sourceTree = "<group>";
 		};
@@ -269,6 +270,7 @@
 			files = (
 				455364871E0A098D00BF1699 /* Relay.swift in Sources */,
 				4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */,
+				45422F9A1E1F9894001CDA37 /* RelayRemoteConfiguration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

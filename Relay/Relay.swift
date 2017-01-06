@@ -11,9 +11,6 @@ import GRDB
 import CocoaLumberjack
 
 
-typealias LogFailure = (task: URLSessionUploadTask, response: HTTPURLResponse)
-
-
 class LogRecord : Record {
     var uuid: String
     var message: String
@@ -80,11 +77,10 @@ class LogRecord : Record {
 
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     var identifier: String
+    var configuration: RelayRemoteConfiguration?
     var dbQueue: DatabaseQueue?
     var urlSession: URLSessionProtocol
-    var logUploadEndpoint: URL?
     
-    var logFailureBlock:( (_: [LogFailure]) -> Void )?
     private let urlSessionIdentifier: String
     private let dbPath: String = "Documents/loggerdb.sqlite"
     
@@ -96,18 +92,18 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///   - dbPath: Location for storing the database containing logs. Please be careful not to specify a nonpersistent
     ///   location for production use.
     ///
-    ///   - logUploadEndpoint: URL to upload logs. See the `persistentDictionary` method on `LogRecord` for information
-    ///   on the payload structure.
+    ///   - configuration: Remote configuration for uploading logs. See the `persistentDictionary` method on `LogRecord` for information
+    ///   on the JSON body and the `RelayRemoteConfiguration` class for options.
     ///
     ///   - session: session to use to upload the logs. If one is not provided a background session will be made
     ///
     /// - Throws: A DatabaseError is thrown whenever an SQLite error occurs. See the GRDB documentation here
     ///   for more information: https://github.com/groue/GRDB.swift#documentation
     ///
-    required public init(identifier: String, logUploadEndpoint: URL? = nil, session: URLSessionProtocol? = nil) throws {
+    required public init(identifier: String, configuration: RelayRemoteConfiguration? = nil, session: URLSessionProtocol? = nil) throws {
         
         self.identifier = identifier
-        self.logUploadEndpoint = logUploadEndpoint
+        self.configuration = configuration
 
         dbQueue = try DatabaseQueue(path: dbPath)
         
@@ -157,7 +153,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
     func flushLogs(callback: ((_ flushedLog: LogRecord, _ error: Error?, _ db: GRDB.Database) -> Void)? = nil) throws {
-        guard let logUploadEndpoint = logUploadEndpoint else { return }
+        guard let logUploadEndpoint = configuration?.host else { return }
         try dbQueue?.inDatabase({ db in
             let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
             for record in logRecords {
@@ -180,18 +176,16 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
     public func processLogUploadTasks(tasks: [URLSessionUploadTask]) throws {
-        var failedLogUploads: [LogFailure] = []
         try dbQueue?.inTransaction { db in
             for task in tasks {
                 guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { continue }
                 if let httpResponse = task.response as? HTTPURLResponse {
                     if httpResponse.statusCode != 200 {
                         record.uploadTaskID = nil
-                        // Tell our delegate we ran into trouble uploading the given logs
-                        let logUploadFailure = LogFailure(task: task, response: httpResponse)
-                        failedLogUploads.append(logUploadFailure)
+                        try record.save(db)
+                    } else {
+                        try record.delete(db)
                     }
-                    try record.delete(db)
                 }
             }
 
