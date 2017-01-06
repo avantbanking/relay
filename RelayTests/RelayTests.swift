@@ -1,6 +1,6 @@
 //
-//  RemoteTests.swift
-//  RemoteTests
+//  RelayTests.swift
+//  RelayTests
 //
 //  Created by Evan Kimia on 12/20/16.
 //  Copyright © 2016 zero. All rights reserved.
@@ -10,10 +10,10 @@ import XCTest
 import CocoaLumberjackSwift
 
 
-@testable import Remote
+@testable import Relay
 
-class RemoteTests: XCTestCase {
-    private var logger: Remote?
+class RelayTests: XCTestCase {
+    private var logger: Relay?
     
     override func setUp() {
         super.setUp()
@@ -31,7 +31,7 @@ class RemoteTests: XCTestCase {
 
     /// Esure a log message is correctly inserted in the logger database
     func testLogger() {
-        logger = try! Remote(identifier:"loggerTests")
+        logger = try! Relay(identifier:"loggerTests")
 
         setupLogger(logger: logger)
 
@@ -54,7 +54,7 @@ class RemoteTests: XCTestCase {
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
-        logger = try! Remote(identifier:"loggerTests", session: sessionMock)
+        logger = try! Relay(identifier:"loggerTests", session: sessionMock)
         
         logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
         setupLogger(logger: logger)
@@ -77,7 +77,7 @@ class RemoteTests: XCTestCase {
         let error = NSError(domain: "loggerTest", code: 5, userInfo: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: error)
         
-        logger = try! Remote(identifier:"loggerTests", session: sessionMock)
+        logger = try! Relay(identifier:"loggerTests", session: sessionMock)
         
         logger?.logUploadEndpoint = URL(string: "https://thisdoesntmatter.com/logs")!
         setupLogger(logger: logger)
@@ -95,7 +95,7 @@ class RemoteTests: XCTestCase {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
-    private func setupLogger(logger: Remote?) {
+    private func setupLogger(logger: Relay?) {
         DDLog.removeAllLoggers()
         DDLog.add(logger)
     }

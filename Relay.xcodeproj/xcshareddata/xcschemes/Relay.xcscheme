@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "455364691E0A07A000BF1699"
-               BuildableName = "Remote.framework"
-               BlueprintName = "Remote"
-               ReferencedContainer = "container:Remote.xcodeproj">
+               BuildableName = "Relay.framework"
+               BlueprintName = "Relay"
+               ReferencedContainer = "container:Relay.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "455364721E0A07A000BF1699"
-               BuildableName = "RemoteTests.xctest"
-               BlueprintName = "RemoteTests"
-               ReferencedContainer = "container:Remote.xcodeproj">
+               BuildableName = "RelayTests.xctest"
+               BlueprintName = "RelayTests"
+               ReferencedContainer = "container:Relay.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -43,9 +43,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "455364691E0A07A000BF1699"
-            BuildableName = "Remote.framework"
-            BlueprintName = "Remote"
-            ReferencedContainer = "container:Remote.xcodeproj">
+            BuildableName = "Relay.framework"
+            BlueprintName = "Relay"
+            ReferencedContainer = "container:Relay.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -65,9 +65,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "455364691E0A07A000BF1699"
-            BuildableName = "Remote.framework"
-            BlueprintName = "Remote"
-            ReferencedContainer = "container:Remote.xcodeproj">
+            BuildableName = "Relay.framework"
+            BlueprintName = "Relay"
+            ReferencedContainer = "container:Relay.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -83,9 +83,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "455364691E0A07A000BF1699"
-            BuildableName = "Remote.framework"
-            BlueprintName = "Remote"
-            ReferencedContainer = "container:Remote.xcodeproj">
+            BuildableName = "Relay.framework"
+            BlueprintName = "Relay"
+            ReferencedContainer = "container:Relay.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

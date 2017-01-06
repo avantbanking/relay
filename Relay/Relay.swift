@@ -1,6 +1,6 @@
 //
-//  Remote.swift
-//  Remote
+//  Relay.swift
+//  Relay
 //
 //  Created by Evan Kimia on 12/20/16.
 //  Copyright © 2016 zero. All rights reserved.
@@ -85,7 +85,7 @@ class LogRecord : Record {
 }
 
 
-public class Remote: DDAbstractLogger, URLSessionTaskDelegate {
+public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     var identifier: String
     var dbQueue: DatabaseQueue?
     var urlSession: URLSessionProtocol
