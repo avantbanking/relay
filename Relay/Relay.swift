@@ -16,15 +16,14 @@ typealias LogFailure = (task: URLSessionUploadTask, response: HTTPURLResponse)
 
 class LogRecord : Record {
     var uuid: String
-    let tableName: String
     var message: String
     var flag: Int
     var level: Int
     var date: Date
     var uploadTaskID: Int?
     var uploaded = false
-    
-    static var tableName: String?
+    var loggerIdentifier: String
+
 
     required init(row: Row) {
         uuid = row.value(named: "uuid")
@@ -34,21 +33,19 @@ class LogRecord : Record {
         date = row.value(named: "date")
         uploadTaskID = row.value(named: "upload_task_id")
         uploaded = row.value(named: "uploaded")
-        
-        tableName = "log_message"
+        loggerIdentifier = row.value(named: "logger_identifier")
 
         super.init(row: row)
     }
 
-    init(logMessage: DDLogMessage) {
+    init(logMessage: DDLogMessage, loggerIdentifier: String) {
         uuid = UUID().uuidString
         message = logMessage.message
         flag = Int(logMessage.flag.rawValue)
         level = Int(logMessage.level.rawValue)
         date = logMessage.timestamp
-        
-        tableName = "log_message"
-        
+        self.loggerIdentifier = loggerIdentifier
+
         super.init()
     }
     
@@ -58,19 +55,15 @@ class LogRecord : Record {
                 "flag": flag,
                 "level": level,
                 "date": date,
-                "uploaded": uploaded
+                "uploaded": uploaded,
+                "logger_identifier": loggerIdentifier
         ]
     }
     
     override class var databaseTableName: String {
-        if let tableName = tableName {
-            return tableName
-        } else {
-            // Log a warning
-            return "log_messages"
-        }
+        return "log_messages"
     }
-    
+
     func dict() -> [String: Any] {
         var dict: [String: Any] = [:]
         dict["uuid"] = uuid
@@ -113,7 +106,6 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///
     required public init(identifier: String, logUploadEndpoint: URL? = nil, session: URLSessionProtocol? = nil) throws {
         
-        LogRecord.tableName = identifier
         self.identifier = identifier
         self.logUploadEndpoint = logUploadEndpoint
 
@@ -136,7 +128,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         try dbQueue?.inDatabase { db in
             guard try !db.tableExists(identifier) else { return }
 
-            try db.create(table: identifier) { t in
+            try db.create(table: "log_messages") { t in
                 t.column("id", .integer).primaryKey()
                 t.column("uuid", .text)
                 t.column("message", .text)
@@ -149,6 +141,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 t.column("date", .datetime)
                 t.column("upload_task_id", .integer)
                 t.column("uploaded", .boolean).notNull().defaults(to: false)
+                t.column("logger_identifier", .text)
             }
         }
     }
@@ -210,7 +203,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
 
     override public func log(message logMessage: DDLogMessage!) {
         // Generate a LogRecord from a LogMessage
-        let logRecord = LogRecord(logMessage: logMessage)
+        let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier)
         try! dbQueue?.inDatabase({ db in
             try logRecord.insert(db)
         })
