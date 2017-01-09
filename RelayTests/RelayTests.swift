@@ -12,8 +12,10 @@ import CocoaLumberjackSwift
 
 @testable import Relay
 
-class RelayTests: XCTestCase {
+class RelayTests: XCTestCase, RelayDelegate {
     private var logger: Relay?
+    private var successBlock: ((_ record: LogRecord) -> Void)?
+    private var failureBlock: ((_ record: LogRecord) -> Void)?
     
     override func setUp() {
         super.setUp()
@@ -23,6 +25,8 @@ class RelayTests: XCTestCase {
         if FileManager.default.fileExists(atPath: dbPath) {
             try! FileManager.default.removeItem(atPath: dbPath)
         }
+        successBlock = nil
+        failureBlock = nil
     }
     
     override func tearDown() {
@@ -56,6 +60,7 @@ class RelayTests: XCTestCase {
         let config = RelayRemoteConfiguration(host: URL(string: "https://thisdoesntmatter.com/logs")!)
         
         logger = try! Relay(identifier:"loggerTests", configuration: config, session: sessionMock)
+        sessionMock.delegate = logger
         
         setupLogger(logger: logger)
         
@@ -63,11 +68,12 @@ class RelayTests: XCTestCase {
         DDLog.flushLog()
         
         let exp = expectation(description: "No network errors should occur when flushing logs.")
-        try! logger?.flushLogs(callback: { record, error, db in
-            // ensure the log was uploaded.
-            XCTAssertTrue(record.uploaded, "Log should have successfully been uploaded.")
+        
+        successBlock = { record in
             exp.fulfill()
-        })
+        }
+        
+        try! logger?.flushLogs()
         
         waitForExpectations(timeout: 1, handler: nil)
     }
@@ -79,6 +85,7 @@ class RelayTests: XCTestCase {
         let config = RelayRemoteConfiguration(host: URL(string: "https://thisdoesntmatter.com/logs")!)
 
         logger = try! Relay(identifier:"loggerTests", configuration: config, session: sessionMock)
+        sessionMock.delegate = logger
         
         setupLogger(logger: logger)
         
@@ -86,11 +93,12 @@ class RelayTests: XCTestCase {
         DDLog.flushLog()
         
         let exp = expectation(description: "An error should have occured when uploading this log.")
-        try! logger?.flushLogs(callback: { record, error, db in
+
+        failureBlock = { record in
             XCTAssertNotNil(error)
-            XCTAssertFalse(record.uploaded)
             exp.fulfill()
-        })
+        }
+        try! logger?.flushLogs()
         
         waitForExpectations(timeout: 1, handler: nil)
     }
@@ -98,5 +106,16 @@ class RelayTests: XCTestCase {
     private func setupLogger(logger: Relay?) {
         DDLog.removeAllLoggers()
         DDLog.add(logger)
+        logger?.delegate = self
+    }
+    
+    //MARK: RelayDelegate methods
+
+    func relay(relay: Relay, didUploadLogRecord record: LogRecord) {
+        successBlock?(record)
+    }
+    
+    func relay(relay: Relay, didFailToUploadLogRecord record: LogRecord, error: Error?, response: HTTPURLResponse?) {
+        failureBlock?(record)
     }
 }

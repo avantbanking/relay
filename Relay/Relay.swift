@@ -11,75 +11,13 @@ import GRDB
 import CocoaLumberjack
 
 
-class LogRecord : Record {
-    var uuid: String
-    var message: String
-    var flag: Int
-    var level: Int
-    var date: Date
-    var uploadTaskID: Int?
-    var uploaded = false
-    var loggerIdentifier: String
-
-
-    required init(row: Row) {
-        uuid = row.value(named: "uuid")
-        message = row.value(named: "message")
-        flag = row.value(named: "flag")
-        level = row.value(named: "level")
-        date = row.value(named: "date")
-        uploadTaskID = row.value(named: "upload_task_id")
-        uploaded = row.value(named: "uploaded")
-        loggerIdentifier = row.value(named: "logger_identifier")
-
-        super.init(row: row)
-    }
-
-    init(logMessage: DDLogMessage, loggerIdentifier: String) {
-        uuid = UUID().uuidString
-        message = logMessage.message
-        flag = Int(logMessage.flag.rawValue)
-        level = Int(logMessage.level.rawValue)
-        date = logMessage.timestamp
-        self.loggerIdentifier = loggerIdentifier
-
-        super.init()
-    }
-    
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["uuid": uuid,
-                "message": message,
-                "flag": flag,
-                "level": level,
-                "date": date,
-                "uploaded": uploaded,
-                "logger_identifier": loggerIdentifier
-        ]
-    }
-    
-    override class var databaseTableName: String {
-        return "log_messages"
-    }
-
-    func dict() -> [String: Any] {
-        var dict: [String: Any] = [:]
-        dict["uuid"] = uuid
-        dict["message"] = message
-        dict["flag"] = flag
-        dict["level"] = level
-        dict["date"] = date.description
-        dict["uploaded"] = uploaded
-        
-        return dict
-    }
-}
-
-
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
+    weak var delegate: RelayDelegate?
     var identifier: String
     var configuration: RelayRemoteConfiguration?
     var dbQueue: DatabaseQueue?
     var urlSession: URLSessionProtocol
+    var uploadRetries = 0
     
     private let urlSessionIdentifier: String
     private let dbPath: String = "Documents/loggerdb.sqlite"
@@ -136,8 +74,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 t.column("line", .integer)
                 t.column("date", .datetime)
                 t.column("upload_task_id", .integer)
-                t.column("uploaded", .boolean).notNull().defaults(to: false)
                 t.column("logger_identifier", .text)
+                t.column("upload_retries", .integer).notNull().defaults(to: 0)
             }
         }
     }
@@ -152,44 +90,66 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         })
     }
     
-    func flushLogs(callback: ((_ flushedLog: LogRecord, _ error: Error?, _ db: GRDB.Database) -> Void)? = nil) throws {
-        guard let logUploadEndpoint = configuration?.host else { return }
+    typealias taskCompletion = (Data?, URLResponse?, Error?) -> Swift.Void
+    
+    func flushLogs() throws {
         try dbQueue?.inDatabase({ db in
             let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
             for record in logRecords {
                 do {
-                    let jsonData = try JSONSerialization.data(withJSONObject: record.dict(), options: .prettyPrinted)
-                    let logUploadRequest = URLRequest(url: logUploadEndpoint)
-                    let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData, completionHandler: { data, response, error in
-                        record.uploaded = error == nil
-                        callback?(record, error, db)
-                    })
-                    task.resume()
-                    
-                    record.uploadTaskID = task.taskIdentifier
+                    let task = try uploadLogRecord(logRecord: record, db: db)
                     try record.save(db)
                 } catch {
-                    callback?(record, error, db)
+                    
                 }
             }
         })
     }
     
-    public func processLogUploadTasks(tasks: [URLSessionUploadTask]) throws {
+    func uploadLogRecord(logRecord: LogRecord, db: Database) throws -> URLSessionUploadTask {
+        let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict(), options: .prettyPrinted)
+        let logUploadRequest = URLRequest(url: configuration!.host)
+        let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData)
+        logRecord.uploadTaskID = task.taskIdentifier
+        try logRecord.save(db)
+        task.resume()
+
+        return task
+    }
+    
+    func handleUploadTaskCompletion(record: LogRecord, data: Data?, response: URLResponse?, error: Error?) {
+    
+    }
+
+    public func processLogUploadTask(task: URLSessionUploadTask) throws {
         try dbQueue?.inTransaction { db in
-            for task in tasks {
-                guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { continue }
-                if let httpResponse = task.response as? HTTPURLResponse {
-                    if httpResponse.statusCode != 200 {
-                        record.uploadTaskID = nil
-                        try record.save(db)
-                    } else {
-                        try record.delete(db)
-                    }
+        guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return .commit }
+        if let httpResponse = task.response as? HTTPURLResponse {
+            if httpResponse.statusCode != 200 {
+                record.uploadTaskID = nil
+                delegate?.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
+                // Should we toss it or try uploading it again?
+                if record.uploadRetries < uploadRetries {
+                    record.uploadRetries += 1
+                    try record.save(db)
+                    try uploadLogRecord(logRecord: record, db: db)
+                } else {
+                    try record.delete(db)
                 }
+                try record.save(db)
+            } else {
+                try record.delete(db)
+                delegate?.relay(relay: self, didUploadLogRecord: record)
             }
+        }
 
             return .commit
+        }
+    }
+    
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let task = task as? URLSessionUploadTask {
+            try! processLogUploadTask(task: task)
         }
     }
     
@@ -197,7 +157,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
 
     override public func log(message logMessage: DDLogMessage!) {
         // Generate a LogRecord from a LogMessage
-        let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier)
+        let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier, uploadRetries: uploadRetries)
         try! dbQueue?.inDatabase({ db in
             try logRecord.insert(db)
         })
