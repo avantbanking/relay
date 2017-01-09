@@ -120,12 +120,24 @@ class RelayTests: XCTestCase, RelayDelegate {
         // The default number of retries is 3, so let's ensure our failureBlock is called 3 times.
         DDLog.flushLog()
         
+        var failureCount = 0
         failureBlock = { record in
-            print("hello \(record.uuid)")
+            failureCount += 1
+            if failureCount == self.logger!.uploadRetries - 1 {
+                // the database should be empty
+                DispatchQueue.main.async {
+                    self.logger!.dbQueue?.inDatabase({ db in
+                        let request = LogRecord.all()
+                        let count = try! request.fetchCount(db)
+                        XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
+                        exp.fulfill()
+                    })
+                }
+            }
         }
         try! logger?.flushLogs()
-        
-        waitForExpectations(timeout: 60, handler: nil)
+
+        waitForExpectations(timeout: 1, handler: nil)
     }
     
     //MARK: RelayDelegate methods

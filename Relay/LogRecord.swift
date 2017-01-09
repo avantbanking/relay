@@ -16,6 +16,10 @@ public class LogRecord : Record {
     var message: String
     var flag: Int
     var level: Int
+    var line: Int
+    var file: String
+    var context: Int
+    var function: String
     var date: Date
     var uploadTaskID: Int?
     var loggerIdentifier: String
@@ -26,6 +30,10 @@ public class LogRecord : Record {
         message = row.value(named: "message")
         flag = row.value(named: "flag")
         level = row.value(named: "level")
+        line = row.value(named: "line")
+        file = row.value(named: "file")
+        context = row.value(named: "context")
+        function = row.value(named: "function")
         date = row.value(named: "date")
         uploadTaskID = row.value(named: "upload_task_id")
         loggerIdentifier = row.value(named: "logger_identifier")
@@ -39,6 +47,10 @@ public class LogRecord : Record {
         message = logMessage.message
         flag = Int(logMessage.flag.rawValue)
         level = Int(logMessage.level.rawValue)
+        line = Int(logMessage.line)
+        file = logMessage.file
+        context = logMessage.context
+        function = logMessage.function
         date = logMessage.timestamp
         self.loggerIdentifier = loggerIdentifier
         
@@ -50,6 +62,10 @@ public class LogRecord : Record {
                 "message": message,
                 "flag": flag,
                 "level": level,
+                "line": line,
+                "file": file,
+                "context": context,
+                "function": function,
                 "date": date,
                 "upload_task_id": uploadTaskID,
                 "logger_identifier": loggerIdentifier,

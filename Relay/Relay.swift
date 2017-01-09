@@ -63,8 +63,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             guard try !db.tableExists(identifier) else { return }
 
             try db.create(table: "log_messages") { t in
-                t.column("id", .integer).primaryKey()
-                t.column("uuid", .text)
+                t.column("uuid", .text).primaryKey()
                 t.column("message", .text)
                 t.column("flag", .integer).notNull()
                 t.column("level", .integer).notNull()
@@ -100,7 +99,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                     let task = try uploadLogRecord(logRecord: record, db: db)
                     try record.update(db)
                 } catch {
-                    
+                    print(error)
                 }
             }
         })
@@ -123,17 +122,15 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         if let httpResponse = task.response as? HTTPURLResponse {
             if httpResponse.statusCode != 200 {
                 record.uploadTaskID = nil
-                delegate?.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
+                record.uploadRetries += 1
+                try record.update(db)
                 // Should we toss it or try uploading it again?
                 if record.uploadRetries < uploadRetries {
-                    record.uploadRetries = record.uploadRetries + 1
-                    try record.update(db)
-                    print(record.hasPersistentChangedValues)
                     try uploadLogRecord(logRecord: record, db: db)
                 } else {
                     try record.delete(db)
                 }
-                try record.update(db)
+                delegate?.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
             } else {
                 try record.delete(db)
                 delegate?.relay(relay: self, didUploadLogRecord: record)
@@ -156,7 +153,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         // Generate a LogRecord from a LogMessage
         let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier)
         try! dbQueue?.inDatabase({ db in
-            try logRecord.insert(db)
+            try logRecord.save(db)
         })
     }
 }
