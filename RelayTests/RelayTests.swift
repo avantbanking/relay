@@ -103,19 +103,46 @@ class RelayTests: XCTestCase, RelayDelegate {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
-    private func setupLogger(logger: Relay?) {
-        DDLog.removeAllLoggers()
-        DDLog.add(logger)
-        logger?.delegate = self
+    func testFailedUploadRetries() {
+        let exp = expectation(description: "A log past the number of upload retries should be deleted.")
+        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 500, httpVersion: nil, headerFields: nil)
+
+        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
+        let config = RelayRemoteConfiguration(host: URL(string: "https://thisdoesntmatter.com/logs")!)
+        
+        logger = try! Relay(identifier:"loggerTests", configuration: config, session: sessionMock)
+        sessionMock.delegate = logger
+        
+        setupLogger(logger: logger)
+        
+        DDLogInfo("Testing one two...")
+        
+        // The default number of retries is 3, so let's ensure our failureBlock is called 3 times.
+        DDLog.flushLog()
+        
+        failureBlock = { record in
+            print("hello \(record.uuid)")
+        }
+        try! logger?.flushLogs()
+        
+        waitForExpectations(timeout: 60, handler: nil)
     }
     
     //MARK: RelayDelegate methods
-
+    
     func relay(relay: Relay, didUploadLogRecord record: LogRecord) {
         successBlock?(record)
     }
     
     func relay(relay: Relay, didFailToUploadLogRecord record: LogRecord, error: Error?, response: HTTPURLResponse?) {
         failureBlock?(record)
+    }
+    
+    // MARK: Helpers
+    
+    private func setupLogger(logger: Relay?) {
+        DDLog.removeAllLoggers()
+        DDLog.add(logger)
+        logger?.delegate = self
     }
 }

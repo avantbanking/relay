@@ -10,6 +10,7 @@ import Foundation
 import GRDB
 import CocoaLumberjack
 
+
 public class LogRecord : Record {
     var uuid: String
     var message: String
@@ -17,10 +18,8 @@ public class LogRecord : Record {
     var level: Int
     var date: Date
     var uploadTaskID: Int?
-    var uploaded = false
     var loggerIdentifier: String
-    var uploadRetries: Int = 0
-    
+    var uploadRetries = 0
     
     required public init(row: Row) {
         uuid = row.value(named: "uuid")
@@ -30,18 +29,17 @@ public class LogRecord : Record {
         date = row.value(named: "date")
         uploadTaskID = row.value(named: "upload_task_id")
         loggerIdentifier = row.value(named: "logger_identifier")
-        uploadRetries = row.value(named: "upload_retries")
         
         super.init(row: row)
+        uploadRetries = row.value(named: "upload_retries")
     }
     
-    init(logMessage: DDLogMessage, loggerIdentifier: String, uploadRetries: Int) {
+    init(logMessage: DDLogMessage, loggerIdentifier: String) {
         uuid = UUID().uuidString
         message = logMessage.message
         flag = Int(logMessage.flag.rawValue)
         level = Int(logMessage.level.rawValue)
         date = logMessage.timestamp
-        self.uploadRetries = uploadRetries
         self.loggerIdentifier = loggerIdentifier
         
         super.init()
@@ -70,7 +68,6 @@ public class LogRecord : Record {
         dict["flag"] = flag
         dict["level"] = level
         dict["date"] = date.description
-        dict["uploaded"] = uploaded
         
         return dict
     }

@@ -17,8 +17,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     var configuration: RelayRemoteConfiguration?
     var dbQueue: DatabaseQueue?
     var urlSession: URLSessionProtocol
-    var uploadRetries = 0
-    
+    var uploadRetries = 3
+
     private let urlSessionIdentifier: String
     private let dbPath: String = "Documents/loggerdb.sqlite"
     
@@ -98,7 +98,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             for record in logRecords {
                 do {
                     let task = try uploadLogRecord(logRecord: record, db: db)
-                    try record.save(db)
+                    try record.update(db)
                 } catch {
                     
                 }
@@ -111,14 +111,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         let logUploadRequest = URLRequest(url: configuration!.host)
         let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData)
         logRecord.uploadTaskID = task.taskIdentifier
-        try logRecord.save(db)
+        try logRecord.update(db)
         task.resume()
 
         return task
-    }
-    
-    func handleUploadTaskCompletion(record: LogRecord, data: Data?, response: URLResponse?, error: Error?) {
-    
     }
 
     public func processLogUploadTask(task: URLSessionUploadTask) throws {
@@ -130,13 +126,14 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 delegate?.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
                 // Should we toss it or try uploading it again?
                 if record.uploadRetries < uploadRetries {
-                    record.uploadRetries += 1
-                    try record.save(db)
+                    record.uploadRetries = record.uploadRetries + 1
+                    try record.update(db)
+                    print(record.hasPersistentChangedValues)
                     try uploadLogRecord(logRecord: record, db: db)
                 } else {
                     try record.delete(db)
                 }
-                try record.save(db)
+                try record.update(db)
             } else {
                 try record.delete(db)
                 delegate?.relay(relay: self, didUploadLogRecord: record)
@@ -157,7 +154,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
 
     override public func log(message logMessage: DDLogMessage!) {
         // Generate a LogRecord from a LogMessage
-        let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier, uploadRetries: uploadRetries)
+        let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier)
         try! dbQueue?.inDatabase({ db in
             try logRecord.insert(db)
         })
