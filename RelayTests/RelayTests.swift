@@ -195,6 +195,10 @@ class RelayTests: XCTestCase, RelayDelegate {
     }
     
     private static func deleteRelayDirectory() {
-        try! FileManager.default.removeItem(at: relayPath())
+        do {
+            try FileManager.default.removeItem(at: relayPath())
+        } catch {
+            // According to the documentation, checks to see if the operation will succeed first are discouraged.
+        }
     }
 }
