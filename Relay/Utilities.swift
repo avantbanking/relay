@@ -25,5 +25,14 @@ func getRelayDirectory() throws -> String {
 }
 
 func relayPath() -> URL {
-    return NSURL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]).appendingPathComponent("relay")!
+    let basePath: URL
+    #if os(OSX)
+        basePath = FileManager.default.urls(for: .applicationSupportDirectory,
+                                            in: .userDomainMask).first!
+    #else
+        basePath = FileManager.default.urls(for: .documentDirectory,
+                                            in: .userDomainMask).first!
+    #endif
+    
+    return basePath.appendingPathComponent("relay")
 }

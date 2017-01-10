@@ -54,7 +54,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         urlSessionIdentifier = urlSession?.configuration.identifier
         
         try dbQueue?.inDatabase { db in
-            guard try db.tableExists(identifier) else { return }
+            guard try !db.tableExists(identifier) else { return }
             
             try db.create(table: LogRecord.TableName) { t in
                 t.column("uuid", .text).primaryKey()
