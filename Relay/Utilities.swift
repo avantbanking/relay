@@ -11,7 +11,9 @@ import Foundation
 
 private func createRelayDirectoryIfNeeded() throws {
     // Create the Relay directory for our supporting files.
-    try FileManager.default.createDirectory(at: relayPath(), withIntermediateDirectories: true, attributes: nil)
+    try FileManager.default.createDirectory(at: relayPath(),
+                                            withIntermediateDirectories: true,
+                                            attributes: nil)
 }
 
 func getRelayDirectory() throws -> String {

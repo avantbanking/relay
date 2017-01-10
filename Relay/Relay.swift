@@ -14,12 +14,14 @@ import CocoaLumberjack
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     weak var delegate: RelayDelegate?
     var identifier: String
-    var configuration: RelayRemoteConfiguration?
+    var configuration: RelayRemoteConfiguration
     var dbQueue: DatabaseQueue?
-    var urlSession: URLSessionProtocol?
     var uploadRetries = 3
     
-    private let urlSessionIdentifier: String?
+    private static var urlSession: URLSessionProtocol = {
+        let backgroundConfig = URLSessionConfiguration.background(withIdentifier: "zerofinancial.inc.logger")
+        return URLSession(configuration: backgroundConfig)
+    }()
     
     /// Initializes the logger using GRDB to interface with SQLite, and your standard URLSession for uploading
     /// logs to the specified server.
@@ -36,22 +38,12 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// - Throws: A DatabaseError is thrown whenever an SQLite error occurs. See the GRDB documentation here
     ///   for more information: https://github.com/groue/GRDB.swift#documentation
     ///
-    required public init(identifier: String, configuration: RelayRemoteConfiguration? = nil, session: URLSessionProtocol? = nil) throws {
+    required public init(identifier: String, configuration: RelayRemoteConfiguration) throws {
         
         self.identifier = identifier
         self.configuration = configuration
-        
+
         dbQueue = try DatabaseQueue(path: try getRelayDirectory() + identifier + ".sqlite")
-        
-        if let session = session {
-            urlSession = session
-        } else {
-            // Setup a background NSURLSession
-            let backgroundConfig = URLSessionConfiguration.background(withIdentifier: "zerofinancial.inc.logger")
-            urlSession = URLSession(configuration: backgroundConfig)
-        }
-        
-        urlSessionIdentifier = urlSession?.configuration.identifier
         
         try dbQueue?.inDatabase { db in
             guard try !db.tableExists(identifier) else { return }
@@ -77,10 +69,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     override init() {
         fatalError("Please use init(dbPath:) instead.")
     }
-    
-    deinit {
-        urlSession?.finishTasksAndInvalidate()
-    }
+
     
     func reset() throws {
         do {
@@ -107,14 +96,25 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
     private func uploadLogRecord(logRecord: LogRecord, db: Database) {
-        guard let host = configuration?.host else { return }
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict(), options: .prettyPrinted)
-            let logUploadRequest = URLRequest(url: host)
-            let task = urlSession?.uploadTask(with: logUploadRequest, from: jsonData)
-            logRecord.uploadTaskID = task?.taskIdentifier
+            let logUploadRequest: URLRequest = {
+               var request = URLRequest(url: configuration.host)
+                if let additionalHTTPHeaders = configuration.additionalHttpHeaders {
+                    for (headerName, headerValue) in additionalHTTPHeaders {
+                        request.setValue(headerValue, forHTTPHeaderField: headerName)
+                    }
+                }
+                return request
+            }()
+            
+            let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict(),
+                                                      options: .prettyPrinted)
+            
+            let task = Relay.urlSession.uploadTask(with: logUploadRequest, from: jsonData)
+            
+            logRecord.uploadTaskID = task.taskIdentifier
             try logRecord.update(db)
-            task?.resume()
+            task.resume()
         } catch {
             print("SQL error during upload process: \(error)")
         }
@@ -122,7 +122,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     func cleanup() {
         // Get our tasks from the session and ensure we dont have a log record associated with a nonexistent task.
-        urlSession?.getAllTasks { [weak self] tasks in
+        Relay.urlSession.getAllTasks { [weak self] tasks in
             guard let this = self else { return }
             do {
                 try this.dbQueue?.inTransaction { db in
