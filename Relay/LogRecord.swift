@@ -12,6 +12,8 @@ import CocoaLumberjack
 
 
 public class LogRecord : Record {
+    static let TableName = "log_messages"
+
     var uuid: String
     var message: String
     var flag: Int
@@ -74,7 +76,7 @@ public class LogRecord : Record {
     }
     
     override public class var databaseTableName: String {
-        return "log_messages"
+        return LogRecord.TableName
     }
     
     func dict() -> [String: Any] {
