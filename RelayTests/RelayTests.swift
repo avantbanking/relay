@@ -164,7 +164,7 @@ class RelayTests: XCTestCase, RelayDelegate {
             try record?.save(db)
             
         })
-        try! logger?.cleanup()
+        logger?.cleanup()
         try! logger?.dbQueue?.inDatabase({ db in
             let record = try LogRecord.fetchOne(db)
             XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)

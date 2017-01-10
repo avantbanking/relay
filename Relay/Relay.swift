@@ -18,9 +18,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     var dbQueue: DatabaseQueue?
     var urlSession: URLSessionProtocol?
     var uploadRetries = 3
-
+    
     private let urlSessionIdentifier: String?
-
+    
     /// Initializes the logger using GRDB to interface with SQLite, and your standard URLSession for uploading
     /// logs to the specified server.
     ///
@@ -46,16 +46,16 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         if let session = session {
             urlSession = session
         } else {
-//            // Setup a background NSURLSession
-//            let backgroundConfig = URLSessionConfiguration.background(withIdentifier: "zerofinancial.inc.logger")
-//            urlSession = URLSession(configuration: backgroundConfig)
+            // Setup a background NSURLSession
+            let backgroundConfig = URLSessionConfiguration.background(withIdentifier: "zerofinancial.inc.logger")
+            urlSession = URLSession(configuration: backgroundConfig)
         }
         
         urlSessionIdentifier = urlSession?.configuration.identifier
         
         try dbQueue?.inDatabase { db in
-            guard try !db.tableExists(identifier) else { return }
-
+            guard try db.tableExists(identifier) else { return }
+            
             try db.create(table: LogRecord.TableName) { t in
                 t.column("uuid", .text).primaryKey()
                 t.column("message", .text)
@@ -71,7 +71,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             }
         }
         super.init()
-        try cleanup()
+        cleanup()
     }
     
     override init() {
@@ -83,19 +83,21 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
     func reset() throws {
-        try dbQueue?.inDatabase({ db in
-            try db.drop(table: identifier)
-        })
+        do {
+            try dbQueue?.inDatabase({ db in
+                try db.drop(table: identifier)
+            })
+        } catch {
+            print("SQL error has occured when resetting the database: \(error)")
+        }
     }
-    
-    typealias taskCompletion = (Data?, URLResponse?, Error?) -> Swift.Void
     
     func flushLogs() throws {
         try dbQueue?.inDatabase({ db in
             let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
             for record in logRecords {
                 do {
-                    try uploadLogRecord(logRecord: record, db: db)
+                    uploadLogRecord(logRecord: record, db: db)
                     try record.update(db)
                 } catch {
                     print(error)
@@ -104,72 +106,86 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         })
     }
     
-    private func uploadLogRecord(logRecord: LogRecord, db: Database) throws {
-        let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict(), options: .prettyPrinted)
-        let logUploadRequest = URLRequest(url: configuration!.host)
-        let task = urlSession?.uploadTask(with: logUploadRequest, from: jsonData)
-        logRecord.uploadTaskID = task?.taskIdentifier
-        try logRecord.update(db)
-        task?.resume()
+    private func uploadLogRecord(logRecord: LogRecord, db: Database) {
+        guard let host = configuration?.host else { return }
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict(), options: .prettyPrinted)
+            let logUploadRequest = URLRequest(url: host)
+            let task = urlSession?.uploadTask(with: logUploadRequest, from: jsonData)
+            logRecord.uploadTaskID = task?.taskIdentifier
+            try logRecord.update(db)
+            task?.resume()
+        } catch {
+            print("SQL error during upload process: \(error)")
+        }
     }
     
-    func cleanup() throws {
+    func cleanup() {
         // Get our tasks from the session and ensure we dont have a log record associated with a nonexistent task.
-        urlSession?.getAllTasks { tasks in
-            try! self.dbQueue!.inTransaction { db in
-                for record in try LogRecord.filter(Column("upload_task_id") != nil).fetchAll(db) {
-                    if tasks.flatMap({ record.uploadTaskID == $0.taskIdentifier }).first == nil {
-                        record.uploadTaskID = nil
-                        try record.update(db)
-                        try self.uploadLogRecord(logRecord: record, db: db)
+        urlSession?.getAllTasks { [weak self] tasks in
+            guard let this = self else { return }
+            do {
+                try this.dbQueue?.inTransaction { db in
+                    for record in try LogRecord.filter(Column("upload_task_id") != nil).fetchAll(db) {
+                        if tasks.flatMap({ record.uploadTaskID == $0.taskIdentifier }).first == nil {
+                            record.uploadTaskID = nil
+                            try record.update(db)
+                            this.uploadLogRecord(logRecord: record, db: db)
+                        }
                     }
+                    
+                    return .commit
                 }
-                
-                return .commit
+            } catch {
+                print("SQL error cleaning up records: \(error)")
             }
         }
     }
     
-    public func processLogUploadTask(task: URLSessionUploadTask) throws {
-        try dbQueue?.inDatabase { db in
-            guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return  }
-            if let httpResponse = task.response as? HTTPURLResponse {
-                if httpResponse.statusCode != 200 {
-                    record.uploadTaskID = nil
-                    record.uploadRetries += 1
-                    try record.update(db)
-                    // Should we toss it or try uploading it again?
-                    if record.uploadRetries < uploadRetries {
-                        try uploadLogRecord(logRecord: record, db: db)
+    public func processLogUploadTask(task: URLSessionUploadTask) {
+        do {
+            try dbQueue?.inDatabase { db in
+                guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return  }
+                if let httpResponse = task.response as? HTTPURLResponse {
+                    if httpResponse.statusCode != 200 {
+                        record.uploadTaskID = nil
+                        record.uploadRetries += 1
+                        try record.update(db)
+                        // Should we toss it or try uploading it again?
+                        if record.uploadRetries < uploadRetries {
+                            uploadLogRecord(logRecord: record, db: db)
+                        } else {
+                            try record.delete(db)
+                        }
+                        delegate?.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
                     } else {
                         try record.delete(db)
+                        delegate?.relay(relay: self, didUploadLogRecord: record)
                     }
-                    delegate?.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
-                } else {
-                    try record.delete(db)
-                    delegate?.relay(relay: self, didUploadLogRecord: record)
                 }
             }
+        } catch {
+            print("SQL error processing log record: \(error)")
         }
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let task = task as? URLSessionUploadTask {
-            do {
-            try processLogUploadTask(task: task)
-            } catch {
-                print(error)
-            }
+            processLogUploadTask(task: task)
         }
     }
     
     // MARK: DDAbstractLogger Methods
-
+    
     override public func log(message logMessage: DDLogMessage!) {
         // Generate a LogRecord from a LogMessage
         let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier)
-        try! dbQueue?.inDatabase({ db in
-            try logRecord.save(db)
-        })
+        do {
+            try dbQueue?.inDatabase({ db in
+                try logRecord.save(db)
+            })
+        } catch {
+            print("SQL error saving log record to the database: \(error)")
+        }
     }
 }
