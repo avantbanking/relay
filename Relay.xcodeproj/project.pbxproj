@@ -10,6 +10,8 @@
 		4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */; };
 		451F2F971E20BD7900EA9394 /* RelayDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451F2F961E20BD7900EA9394 /* RelayDelegate.swift */; };
 		4522EB3D1E24A67C00101132 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4522EB3C1E24A67C00101132 /* Utilities.swift */; };
+		4535D3E51E24C97A00523D49 /* Carthage.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 4535D3E41E24C97A00523D49 /* Carthage.xcconfig */; };
+		4535D3E71E24C98200523D49 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4535D3E61E24C98200523D49 /* README.md */; };
 		45422F9A1E1F9894001CDA37 /* RelayRemoteConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45422F991E1F9894001CDA37 /* RelayRemoteConfiguration.swift */; };
 		455364741E0A07A000BF1699 /* Relay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553646A1E0A07A000BF1699 /* Relay.framework */; };
 		455364791E0A07A000BF1699 /* RelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364781E0A07A000BF1699 /* RelayTests.swift */; };
@@ -35,6 +37,8 @@
 		4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = URLSessionMock.swift; path = RelayTests/URLSessionMock.swift; sourceTree = SOURCE_ROOT; };
 		451F2F961E20BD7900EA9394 /* RelayDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RelayDelegate.swift; sourceTree = "<group>"; };
 		4522EB3C1E24A67C00101132 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		4535D3E41E24C97A00523D49 /* Carthage.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Carthage.xcconfig; sourceTree = "<group>"; };
+		4535D3E61E24C98200523D49 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		45422F991E1F9894001CDA37 /* RelayRemoteConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RelayRemoteConfiguration.swift; sourceTree = "<group>"; };
 		4553646A1E0A07A000BF1699 /* Relay.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Relay.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4553646D1E0A07A000BF1699 /* Relay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Relay.h; sourceTree = "<group>"; };
@@ -76,6 +80,8 @@
 		455364601E0A07A000BF1699 = {
 			isa = PBXGroup;
 			children = (
+				4535D3E61E24C98200523D49 /* README.md */,
+				4535D3E41E24C97A00523D49 /* Carthage.xcconfig */,
 				4553646C1E0A07A000BF1699 /* Relay */,
 				455364771E0A07A000BF1699 /* RelayTests */,
 				4553646B1E0A07A000BF1699 /* Products */,
@@ -224,6 +230,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4535D3E51E24C97A00523D49 /* Carthage.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,6 +287,7 @@
 				4522EB3D1E24A67C00101132 /* Utilities.swift in Sources */,
 				455364871E0A098D00BF1699 /* Relay.swift in Sources */,
 				4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */,
+				4535D3E71E24C98200523D49 /* README.md in Sources */,
 				451F2F971E20BD7900EA9394 /* RelayDelegate.swift in Sources */,
 				45D8457E1E236DC30017FD5C /* LogRecord.swift in Sources */,
 				45422F9A1E1F9894001CDA37 /* RelayRemoteConfiguration.swift in Sources */,
@@ -306,6 +314,7 @@
 /* Begin XCBuildConfiguration section */
 		4553647C1E0A07A000BF1699 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4535D3E41E24C97A00523D49 /* Carthage.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -346,19 +355,24 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = iphoneos;
+				SDKROOT = "";
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos watchos watchsimulator macosx appletvos appletvsimulator";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TVOS_DEPLOYMENT_TARGET = 10.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+				WATCHOS_DEPLOYMENT_TARGET = 3.1;
 			};
 			name = Debug;
 		};
 		4553647D1E0A07A000BF1699 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4535D3E41E24C97A00523D49 /* Carthage.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -393,19 +407,24 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
-				SDKROOT = iphoneos;
+				SDKROOT = "";
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos watchos watchsimulator macosx appletvos appletvsimulator";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TVOS_DEPLOYMENT_TARGET = 10.0;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+				WATCHOS_DEPLOYMENT_TARGET = 3.1;
 			};
 			name = Release;
 		};
 		4553647F1E0A07A000BF1699 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
@@ -431,6 +450,7 @@
 		455364801E0A07A000BF1699 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
