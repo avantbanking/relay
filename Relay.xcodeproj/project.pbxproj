@@ -10,8 +10,6 @@
 		4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */; };
 		451F2F971E20BD7900EA9394 /* RelayDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451F2F961E20BD7900EA9394 /* RelayDelegate.swift */; };
 		4522EB3D1E24A67C00101132 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4522EB3C1E24A67C00101132 /* Utilities.swift */; };
-		4535D3E51E24C97A00523D49 /* Carthage.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 4535D3E41E24C97A00523D49 /* Carthage.xcconfig */; };
-		4535D3E71E24C98200523D49 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 4535D3E61E24C98200523D49 /* README.md */; };
 		45422F9A1E1F9894001CDA37 /* RelayRemoteConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45422F991E1F9894001CDA37 /* RelayRemoteConfiguration.swift */; };
 		455364741E0A07A000BF1699 /* Relay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553646A1E0A07A000BF1699 /* Relay.framework */; };
 		455364791E0A07A000BF1699 /* RelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364781E0A07A000BF1699 /* RelayTests.swift */; };
@@ -154,7 +152,6 @@
 				455364661E0A07A000BF1699 /* Frameworks */,
 				455364671E0A07A000BF1699 /* Headers */,
 				455364681E0A07A000BF1699 /* Resources */,
-				455364851E0A08A900BF1699 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -230,7 +227,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4535D3E51E24C97A00523D49 /* Carthage.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -244,22 +240,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		455364851E0A08A900BF1699 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/CocoaLumberjack.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/GRDB.framework",
-				"$(SRCROOT)/Carthage/Build/iOS/CocoaLumberjackSwift.framework",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage copy-frameworks";
-		};
 		4553648F1E0A0D5D00BF1699 /* Carthage */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -287,7 +267,6 @@
 				4522EB3D1E24A67C00101132 /* Utilities.swift in Sources */,
 				455364871E0A098D00BF1699 /* Relay.swift in Sources */,
 				4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */,
-				4535D3E71E24C98200523D49 /* README.md in Sources */,
 				451F2F971E20BD7900EA9394 /* RelayDelegate.swift in Sources */,
 				45D8457E1E236DC30017FD5C /* LogRecord.swift in Sources */,
 				45422F9A1E1F9894001CDA37 /* RelayRemoteConfiguration.swift in Sources */,
@@ -439,6 +418,7 @@
 				INFOPLIST_FILE = Relay/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.Relay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -465,6 +445,7 @@
 				INFOPLIST_FILE = Relay/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.Relay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
