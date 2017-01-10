@@ -67,10 +67,11 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 t.column("line", .integer)
                 t.column("date", .datetime)
                 t.column("upload_task_id", .integer)
-                t.column("logger_identifier", .text)
                 t.column("upload_retries", .integer).notNull().defaults(to: 0)
             }
         }
+        super.init()
+        try cleanup()
     }
     
     override init() {

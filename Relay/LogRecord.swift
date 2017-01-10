@@ -24,7 +24,6 @@ public class LogRecord : Record {
     var function: String
     var date: Date
     var uploadTaskID: Int?
-    var loggerIdentifier: String
     var uploadRetries = 0
     
     required public init(row: Row) {
@@ -38,7 +37,6 @@ public class LogRecord : Record {
         function = row.value(named: "function")
         date = row.value(named: "date")
         uploadTaskID = row.value(named: "upload_task_id")
-        loggerIdentifier = row.value(named: "logger_identifier")
         
         super.init(row: row)
         uploadRetries = row.value(named: "upload_retries")
@@ -54,7 +52,6 @@ public class LogRecord : Record {
         context = logMessage.context
         function = logMessage.function
         date = logMessage.timestamp
-        self.loggerIdentifier = loggerIdentifier
         
         super.init()
     }
@@ -70,7 +67,6 @@ public class LogRecord : Record {
                 "function": function,
                 "date": date,
                 "upload_task_id": uploadTaskID,
-                "logger_identifier": loggerIdentifier,
                 "upload_retries": uploadRetries
         ]
     }
