@@ -72,7 +72,7 @@ class RelayTests: XCTestCase, RelayDelegate {
             exp.fulfill()
         }
         
-        try! logger?.flushLogs()
+        logger?.flushLogs()
         
         waitForExpectations(timeout: 1, handler: nil)
     }
@@ -102,7 +102,7 @@ class RelayTests: XCTestCase, RelayDelegate {
                 self?.failureBlock = nil
             }
         }
-        try! logger?.flushLogs()
+        logger?.flushLogs()
         
         waitForExpectations(timeout: 1, handler: nil)
     }
@@ -141,7 +141,7 @@ class RelayTests: XCTestCase, RelayDelegate {
                 }
             }
         }
-        try! logger?.flushLogs()
+        logger?.flushLogs()
         
         waitForExpectations(timeout: 1, handler: nil)
     }
@@ -193,6 +193,7 @@ class RelayTests: XCTestCase, RelayDelegate {
     // MARK: Helpers
     
     private func setupLogger() {
+        logger?.autoUpload = false
         DDLog.removeAllLoggers()
         DDLog.add(logger)
         logger?.delegate = self

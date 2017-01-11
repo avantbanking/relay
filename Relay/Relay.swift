@@ -12,11 +12,12 @@ import CocoaLumberjack
 
 
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
-    weak var delegate: RelayDelegate?
-    var identifier: String
-    var configuration: RelayRemoteConfiguration
+    public weak var delegate: RelayDelegate?
+    public var uploadRetries = 3
+    public var autoUpload = true
     var dbQueue: DatabaseQueue?
-    var uploadRetries = 3
+    private var identifier: String
+    private var configuration: RelayRemoteConfiguration
     
     private static let urlSessionIdentifier = "zerofinancial.inc.logger"
     private var sessionCompletionHandler: (() -> Void)?
@@ -82,9 +83,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 }
             }
         } catch {
-#if DEBUG
-            fatalError("SQL error during initialization: \(error)")
-#endif
+            #if DEBUG
+                fatalError("SQL error during initialization: \(error)")
+            #endif
         }
         super.init()
         cleanup()
@@ -109,18 +110,22 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
-    func flushLogs() throws {
-        try dbQueue?.inDatabase({ db in
-            let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
-            for record in logRecords {
-                do {
-                    uploadLogRecord(logRecord: record, db: db)
-                    try record.update(db)
-                } catch {
-                    print(error)
+    func flushLogs() {
+        do {
+            try dbQueue?.inDatabase({ db in
+                let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
+                for record in logRecords {
+                    do {
+                        uploadLogRecord(logRecord: record, db: db)
+                        try record.update(db)
+                    } catch {
+                        print(error)
+                    }
                 }
-            }
-        })
+            })
+        } catch {
+            print("SQL error when flushing logs: \(error)")
+        }
     }
     
     private func uploadLogRecord(logRecord: LogRecord, db: Database) {
@@ -210,8 +215,14 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         // Generate a LogRecord from a LogMessage
         let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier)
         do {
-            try dbQueue?.inDatabase({ db in
+            try dbQueue?.inDatabase({ [weak self] db in
                 try logRecord.save(db)
+                DispatchQueue.global(qos: DispatchQoS.QoSClass.default).async {
+                    guard let this = self else { return }
+                    if this.autoUpload {
+                        this.flushLogs()
+                    }
+                }
             })
         } catch {
             print("SQL error saving log record to the database: \(error)")
