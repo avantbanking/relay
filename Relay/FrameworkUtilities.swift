@@ -1,5 +1,5 @@
 //
-//  Utilities.swift
+//  FrameworkUtilities.swift
 //  Relay
 //
 //  Created by Evan Kimia on 1/9/17.

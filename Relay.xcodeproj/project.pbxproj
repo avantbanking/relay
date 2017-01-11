@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */; };
 		451F2F971E20BD7900EA9394 /* RelayDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451F2F961E20BD7900EA9394 /* RelayDelegate.swift */; };
-		4522EB3D1E24A67C00101132 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4522EB3C1E24A67C00101132 /* Utilities.swift */; };
+		4522EB3D1E24A67C00101132 /* FrameworkUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4522EB3C1E24A67C00101132 /* FrameworkUtilities.swift */; };
 		45422F9A1E1F9894001CDA37 /* RelayRemoteConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45422F991E1F9894001CDA37 /* RelayRemoteConfiguration.swift */; };
 		455364741E0A07A000BF1699 /* Relay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553646A1E0A07A000BF1699 /* Relay.framework */; };
 		455364791E0A07A000BF1699 /* RelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364781E0A07A000BF1699 /* RelayTests.swift */; };
@@ -17,6 +17,7 @@
 		455364871E0A098D00BF1699 /* Relay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364861E0A098D00BF1699 /* Relay.swift */; };
 		4553648A1E0A0B2500BF1699 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 455364891E0A0B2500BF1699 /* GRDB.framework */; };
 		4553648C1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */; };
+		4571F4181E25BF5B008D7F78 /* TestUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4571F4171E25BF5B008D7F78 /* TestUtilities.swift */; };
 		45D8457E1E236DC30017FD5C /* LogRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45D8457D1E236DC30017FD5C /* LogRecord.swift */; };
 /* End PBXBuildFile section */
 
@@ -33,7 +34,7 @@
 /* Begin PBXFileReference section */
 		4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = URLSessionMock.swift; path = RelayTests/URLSessionMock.swift; sourceTree = SOURCE_ROOT; };
 		451F2F961E20BD7900EA9394 /* RelayDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RelayDelegate.swift; sourceTree = "<group>"; };
-		4522EB3C1E24A67C00101132 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		4522EB3C1E24A67C00101132 /* FrameworkUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FrameworkUtilities.swift; sourceTree = "<group>"; };
 		4535D3E41E24C97A00523D49 /* Carthage.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Carthage.xcconfig; sourceTree = "<group>"; };
 		4535D3E61E24C98200523D49 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		45422F991E1F9894001CDA37 /* RelayRemoteConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RelayRemoteConfiguration.swift; sourceTree = "<group>"; };
@@ -47,6 +48,7 @@
 		455364891E0A0B2500BF1699 /* GRDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GRDB.framework; path = Carthage/Build/iOS/GRDB.framework; sourceTree = "<group>"; };
 		4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaLumberjackSwift.framework; path = Carthage/Build/iOS/CocoaLumberjackSwift.framework; sourceTree = "<group>"; };
 		455364901E0A0F2400BF1699 /* CocoaLumberjack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaLumberjack.framework; path = Carthage/Build/iOS/CocoaLumberjack.framework; sourceTree = "<group>"; };
+		4571F4171E25BF5B008D7F78 /* TestUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtilities.swift; sourceTree = "<group>"; };
 		45D8457D1E236DC30017FD5C /* LogRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogRecord.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -101,7 +103,8 @@
 				45422F991E1F9894001CDA37 /* RelayRemoteConfiguration.swift */,
 				45D8457D1E236DC30017FD5C /* LogRecord.swift */,
 				455364861E0A098D00BF1699 /* Relay.swift */,
-				4522EB3C1E24A67C00101132 /* Utilities.swift */,
+				4522EB3C1E24A67C00101132 /* FrameworkUtilities.swift */,
+				4571F4171E25BF5B008D7F78 /* TestUtilities.swift */,
 				451F2F961E20BD7900EA9394 /* RelayDelegate.swift */,
 			);
 			path = Relay;
@@ -261,8 +264,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4522EB3D1E24A67C00101132 /* Utilities.swift in Sources */,
+				4522EB3D1E24A67C00101132 /* FrameworkUtilities.swift in Sources */,
 				455364871E0A098D00BF1699 /* Relay.swift in Sources */,
+				4571F4181E25BF5B008D7F78 /* TestUtilities.swift in Sources */,
 				4506CBC11E11FACD00DB9EA6 /* URLSessionMock.swift in Sources */,
 				451F2F971E20BD7900EA9394 /* RelayDelegate.swift in Sources */,
 				45D8457E1E236DC30017FD5C /* LogRecord.swift in Sources */,

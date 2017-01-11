@@ -18,10 +18,20 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     var dbQueue: DatabaseQueue?
     var uploadRetries = 3
     
-    private static var urlSession: URLSessionProtocol = {
+    private static var sharedUrlSession: URLSessionProtocol = {
         let backgroundConfig = URLSessionConfiguration.background(withIdentifier: "zerofinancial.inc.logger")
         return URLSession(configuration: backgroundConfig)
     }()
+    
+    private var testSession: URLSessionProtocol?    
+    
+    private var urlSession: URLSessionProtocol {
+        if let testSession = testSession {
+            return testSession
+        } else {
+            return Relay.sharedUrlSession
+        }
+    }
     
     /// Initializes the logger using GRDB to interface with SQLite, and your standard URLSession for uploading
     /// logs to the specified server.
@@ -38,10 +48,14 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// - Throws: A DatabaseError is thrown whenever an SQLite error occurs. See the GRDB documentation here
     ///   for more information: https://github.com/groue/GRDB.swift#documentation
     ///
-    required public init(identifier: String, configuration: RelayRemoteConfiguration) throws {
+    required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) throws {
         
         self.identifier = identifier
         self.configuration = configuration
+        if testSession != nil && !isRunningUnitTests() {
+            fatalError("testSession can only be used when running unit tests.")
+        }
+        self.testSession = testSession
 
         dbQueue = try DatabaseQueue(path: try getRelayDirectory() + identifier + ".sqlite")
         
@@ -70,7 +84,6 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         fatalError("Please use init(dbPath:) instead.")
     }
 
-    
     func reset() throws {
         do {
             try dbQueue?.inDatabase({ db in
@@ -110,7 +123,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict(),
                                                       options: .prettyPrinted)
             
-            let task = Relay.urlSession.uploadTask(with: logUploadRequest, from: jsonData)
+            let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData)
             
             logRecord.uploadTaskID = task.taskIdentifier
             try logRecord.update(db)
@@ -122,7 +135,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     func cleanup() {
         // Get our tasks from the session and ensure we dont have a log record associated with a nonexistent task.
-        Relay.urlSession.getAllTasks { [weak self] tasks in
+        urlSession.getAllTasks { [weak self] tasks in
             guard let this = self else { return }
             do {
                 try this.dbQueue?.inTransaction { db in
