@@ -180,6 +180,19 @@ class RelayTests: XCTestCase, RelayDelegate {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
+    func testHandleRelayUrlSessionEvents() {
+        logger = Relay(identifier:"testHandleRelayUrlSessionEvents",
+                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
+        
+        XCTAssertNil(logger!.sessionCompletionHandler)
+        
+        logger?.handleRelayUrlSessionEvents(identifier: Relay.urlSessionIdentifier,
+                                            completionHandler: {
+                                                print("all done.")
+        })
+        XCTAssertTrue(logger!.sessionCompletionHandler != nil)
+    }
+    
     //MARK: RelayDelegate methods
     
     func relay(relay: Relay, didUploadLogRecord record: LogRecord) {

@@ -19,8 +19,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     private var identifier: String
     private var configuration: RelayRemoteConfiguration
     
-    private static let urlSessionIdentifier = "zerofinancial.inc.logger"
-    private var sessionCompletionHandler: (() -> Void)?
+    static let urlSessionIdentifier = "zerofinancial.inc.logger"
+    var sessionCompletionHandler: (() -> Void)?
     
     private static var sharedUrlSession: URLSessionProtocol = {
         let backgroundConfig = URLSessionConfiguration.background(withIdentifier: Relay.urlSessionIdentifier)
