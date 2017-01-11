@@ -26,8 +26,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         return URLSession(configuration: backgroundConfig)
     }()
     
-    private var testSession: URLSessionProtocol?    
-
+    private var testSession: URLSessionProtocol?
+    
     private var urlSession: URLSessionProtocol {
         if let testSession = testSession {
             return testSession
@@ -51,7 +51,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// - Throws: A DatabaseError is thrown whenever an SQLite error occurs. See the GRDB documentation here
     ///   for more information: https://github.com/groue/GRDB.swift#documentation
     ///
-    required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) throws {
+    required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) {
         
         self.identifier = identifier
         self.configuration = configuration
@@ -59,25 +59,32 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             fatalError("testSession can only be used when running unit tests.")
         }
         self.testSession = testSession
-
-        dbQueue = try DatabaseQueue(path: try getRelayDirectory() + identifier + ".sqlite")
         
-        try dbQueue?.inDatabase { db in
-            guard try !db.tableExists(identifier) else { return }
+        do {
             
-            try db.create(table: LogRecord.TableName) { t in
-                t.column("uuid", .text).primaryKey()
-                t.column("message", .text)
-                t.column("flag", .integer).notNull()
-                t.column("level", .integer).notNull()
-                t.column("context", .text)
-                t.column("file", .text)
-                t.column("function", .text)
-                t.column("line", .integer)
-                t.column("date", .datetime)
-                t.column("upload_task_id", .integer)
-                t.column("upload_retries", .integer).notNull().defaults(to: 0)
+            dbQueue = try DatabaseQueue(path: try getRelayDirectory() + identifier + ".sqlite")
+            
+            try dbQueue?.inDatabase { db in
+                guard try !db.tableExists(identifier) else { return }
+                
+                try db.create(table: LogRecord.TableName) { t in
+                    t.column("uuid", .text).primaryKey()
+                    t.column("message", .text)
+                    t.column("flag", .integer).notNull()
+                    t.column("level", .integer).notNull()
+                    t.column("context", .text)
+                    t.column("file", .text)
+                    t.column("function", .text)
+                    t.column("line", .integer)
+                    t.column("date", .datetime)
+                    t.column("upload_task_id", .integer)
+                    t.column("upload_retries", .integer).notNull().defaults(to: 0)
+                }
             }
+        } catch {
+            #if DEBUG
+            fatalError("SQL error during initialization: \(error)")
+            #endif
         }
         super.init()
         cleanup()
@@ -86,7 +93,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     override init() {
         fatalError("Please use init(dbPath:) instead.")
     }
-
+    
     public func handleRelayEvents(identifier: String, completionHandler: @escaping () -> Void) {
         guard identifier == Relay.urlSessionIdentifier else { return }
         sessionCompletionHandler = completionHandler
@@ -119,7 +126,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     private func uploadLogRecord(logRecord: LogRecord, db: Database) {
         do {
             let logUploadRequest: URLRequest = {
-               var request = URLRequest(url: configuration.host)
+                var request = URLRequest(url: configuration.host)
                 if let additionalHTTPHeaders = configuration.additionalHttpHeaders {
                     for (headerName, headerValue) in additionalHTTPHeaders {
                         request.setValue(headerValue, forHTTPHeaderField: headerName)

@@ -34,8 +34,8 @@ class RelayTests: XCTestCase, RelayDelegate {
     
     // Esure a log message is correctly inserted in the logger database
     func testLogger() {
-        logger = try! Relay(identifier:"testLogger",
-                            configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
+        logger = Relay(identifier:"testLogger",
+                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
         setupLogger()
         
         let exp = expectation(description: "A log should be present in the log database.")
@@ -57,9 +57,9 @@ class RelayTests: XCTestCase, RelayDelegate {
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
-        logger = try! Relay(identifier:"testSuccessfulLogFlush",
-                            configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                            testSession:sessionMock)
+        logger = Relay(identifier:"testSuccessfulLogFlush",
+                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+                       testSession:sessionMock)
         sessionMock.delegate = logger
         setupLogger()
         
@@ -82,9 +82,9 @@ class RelayTests: XCTestCase, RelayDelegate {
         let error = NSError(domain: "loggerTest", code: 5, userInfo: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: error)
         
-        logger = try! Relay(identifier:"testFailedLogFlush",
-                            configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                            testSession:sessionMock)
+        logger = Relay(identifier:"testFailedLogFlush",
+                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+                       testSession:sessionMock)
         
         sessionMock.delegate = logger
         
@@ -113,9 +113,9 @@ class RelayTests: XCTestCase, RelayDelegate {
         
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
-        logger = try! Relay(identifier:"testFailedUploadRetries",
-                            configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                            testSession:sessionMock)
+        logger = Relay(identifier:"testFailedUploadRetries",
+                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+                       testSession:sessionMock)
         
         sessionMock.delegate = logger
         
@@ -152,9 +152,9 @@ class RelayTests: XCTestCase, RelayDelegate {
         
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
-        logger = try! Relay(identifier:"testCleanup",
-                            configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                            testSession:sessionMock)
+        logger = Relay(identifier:"testCleanup",
+                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+                       testSession:sessionMock)
         sessionMock.delegate = logger
         
         setupLogger()
