@@ -82,9 +82,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 }
             }
         } catch {
-            #if DEBUG
+#if DEBUG
             fatalError("SQL error during initialization: \(error)")
-            #endif
+#endif
         }
         super.init()
         cleanup()
@@ -94,7 +94,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         fatalError("Please use init(dbPath:) instead.")
     }
     
-    public func handleRelayEvents(identifier: String, completionHandler: @escaping () -> Void) {
+    public func handleRelayUrlSessionEvents(identifier: String, completionHandler: @escaping () -> Void) {
         guard identifier == Relay.urlSessionIdentifier else { return }
         sessionCompletionHandler = completionHandler
     }
