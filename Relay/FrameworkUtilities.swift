@@ -36,5 +36,6 @@ func relayPath() -> URL {
                                             in: .userDomainMask).first!
     #endif
     
+    print(basePath)
     return basePath.appendingPathComponent("relay")
 }

@@ -143,7 +143,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict(),
                                                       options: .prettyPrinted)
             
-            let task = urlSession.uploadTask(with: logUploadRequest, from: jsonData)
+            let fileURL = relayPath().appendingPathComponent("\(logRecord.uuid)")
+            try jsonData.write(to: fileURL, options: .atomic)
+
+            let task = urlSession.uploadTask(with: logUploadRequest, fromFile: fileURL)
             
             logRecord.uploadTaskID = task.taskIdentifier
             try logRecord.update(db)
@@ -189,16 +192,27 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                             uploadLogRecord(logRecord: record, db: db)
                         } else {
                             try record.delete(db)
+                            deleteTempFile(forRecord: record)
                         }
                         delegate?.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
                     } else {
                         try record.delete(db)
+                        deleteTempFile(forRecord: record)
                         delegate?.relay(relay: self, didUploadLogRecord: record)
                     }
                 }
             }
         } catch {
             print("SQL error processing log record: \(error)")
+        }
+    }
+    
+    private func deleteTempFile(forRecord record: LogRecord) {
+        let fileURL = relayPath().appendingPathComponent("\(record.uuid)")
+        do {
+            try FileManager.default.removeItem(at: fileURL)
+        } catch {
+            print("unable to delete temporary log file: \(error)")
         }
     }
     

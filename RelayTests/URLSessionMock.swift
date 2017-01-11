@@ -9,7 +9,9 @@ public protocol URLSessionProtocol {
     var delegate: URLSessionDelegate? { get }
 
     func uploadTask(with request: URLRequest, from bodyData: Data) -> URLSessionUploadTask
-    
+
+    func uploadTask(with request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask
+
     func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Swift.Void)
     
     func finishTasksAndInvalidate()
@@ -33,6 +35,16 @@ public final class URLSessionMock : URLSessionProtocol {
     }
 
     public func uploadTask(with request: URLRequest, from bodyData: Data) -> URLSessionUploadTask {
+        self.request = request
+        
+        let uploadTaskMock = URLSessionUploadTaskMock(session: self, sessionDelegate: delegate as! URLSessionTaskDelegate)
+        uploadTaskMock.taskResponse = taskResponse
+        tasks.append(uploadTaskMock)
+        
+        return uploadTaskMock
+    }
+    
+    public func uploadTask(with request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask {
         self.request = request
         
         let uploadTaskMock = URLSessionUploadTaskMock(session: self, sessionDelegate: delegate as! URLSessionTaskDelegate)
