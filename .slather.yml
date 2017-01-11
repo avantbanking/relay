@@ -1,0 +1,3 @@
+coverage_service: coveralls
+xcodeproj: /relay.xcodeproj
+source_directory: relay
