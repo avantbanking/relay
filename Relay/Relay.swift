@@ -18,13 +18,16 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     var dbQueue: DatabaseQueue?
     var uploadRetries = 3
     
+    private static let urlSessionIdentifier = "zerofinancial.inc.logger"
+    private var sessionCompletionHandler: (() -> Void)?
+    
     private static var sharedUrlSession: URLSessionProtocol = {
-        let backgroundConfig = URLSessionConfiguration.background(withIdentifier: "zerofinancial.inc.logger")
+        let backgroundConfig = URLSessionConfiguration.background(withIdentifier: Relay.urlSessionIdentifier)
         return URLSession(configuration: backgroundConfig)
     }()
     
     private var testSession: URLSessionProtocol?    
-    
+
     private var urlSession: URLSessionProtocol {
         if let testSession = testSession {
             return testSession
@@ -84,6 +87,11 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         fatalError("Please use init(dbPath:) instead.")
     }
 
+    public func handleRelayEvents(identifier: String, completionHandler: @escaping () -> Void) {
+        guard identifier == Relay.urlSessionIdentifier else { return }
+        sessionCompletionHandler = completionHandler
+    }
+    
     func reset() throws {
         do {
             try dbQueue?.inDatabase({ db in
@@ -186,6 +194,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         if let task = task as? URLSessionUploadTask {
             processLogUploadTask(task: task)
         }
+        sessionCompletionHandler?()
     }
     
     // MARK: DDAbstractLogger Methods

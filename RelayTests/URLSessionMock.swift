@@ -37,7 +37,6 @@ public final class URLSessionMock : URLSessionProtocol {
         
         let uploadTaskMock = URLSessionUploadTaskMock(session: self, sessionDelegate: delegate as! URLSessionTaskDelegate)
         uploadTaskMock.taskResponse = taskResponse
-        
         tasks.append(uploadTaskMock)
         
         return uploadTaskMock
