@@ -12,15 +12,34 @@ import CocoaLumberjack
 
 
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
+    
+    static let urlSessionIdentifier = "zerofinancial.inc.logger"
+    
     public weak var delegate: RelayDelegate?
+    
+    /// The number of upload retries before the log is deleted.
+    /// A nil value means it will retry indefinitely.
     public var uploadRetries = 3
+    
+    /// When true logs will be immediately uploaded. If set to true
+    /// and the app is in the background it will fall back to being 
+    /// discretionary to the system.
     public var autoUpload = true
+    
+    /// Internal dbQueue, marked as internal for use when running tests.
     var dbQueue: DatabaseQueue?
-    private var identifier: String
+    
+    /// Represents the network connection settings used when firing off network tasks.
+    /// Changing the host and/or additional headers will update pending log uploads
+    /// automatically.
     public var configuration: RelayRemoteConfiguration
 
-    static let urlSessionIdentifier = "zerofinancial.inc.logger"
     var sessionCompletionHandler: (() -> Void)?
+    
+    /// The relay identifier is used to segment different relays to different
+    /// databases.
+    private var identifier: String
+    
     
     private static var sharedUrlSession: URLSessionProtocol = {
         let backgroundConfig = URLSessionConfiguration.background(withIdentifier: Relay.urlSessionIdentifier)
@@ -37,21 +56,15 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
-    /// Initializes the logger using GRDB to interface with SQLite, and your standard URLSession for uploading
-    /// logs to the specified server.
+    /// Initializes a relay.
     ///
     /// - Parameters:
-    ///   - dbPath: Location for storing the database containing logs. Please be careful not to specify a nonpersistent
-    ///   location for production use.
+    ///   - identifier: the identifier to be used for this relay. Each relay maintains it's own
+    ///                 internal sqlite database for bookkeeping.
     ///
-    ///   - configuration: Remote configuration for uploading logs. See the `persistentDictionary` method on `LogRecord` for information
-    ///   on the JSON body and the `RelayRemoteConfiguration` class for options.
+    ///   - configuration: see the documentation for `RelayRemoteConfiguration` for more information.
     ///
-    ///   - session: session to use to upload the logs. If one is not provided a background session will be made
-    ///
-    /// - Throws: A DatabaseError is thrown whenever an SQLite error occurs. See the GRDB documentation here
-    ///   for more information: https://github.com/groue/GRDB.swift#documentation
-    ///
+    ///   - testSession: only to be used when running tests!
     required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) {
         
         self.identifier = identifier
@@ -62,7 +75,6 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         self.testSession = testSession
         
         do {
-            
             dbQueue = try DatabaseQueue(path: try getRelayDirectory() + identifier + ".sqlite")
             
             try dbQueue?.inDatabase { db in
@@ -92,15 +104,29 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
     override init() {
-        fatalError("Please use init(dbPath:) instead.")
+        fatalError("Please use init(_, _, _) instead.")
     }
     
+    
+    /// Call in `application(_:handleEventsForBackgroundURLSession:completionHandler:)` in order
+    /// for a relay to finish processing a log record once it succeeds/fails to upload. Take a
+    /// look [here](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1622941-application)
+    /// for more information.
+    ///
+    /// - Parameters:
+    ///   - identifier: The identifier passed from `application(_:handleEventsForBackgroundURLSession:completionHandler:)`
+    ///                 If the identifer doesn't match the function will exit.
+    ///
+    ///   - completionHandler: The completion handler passed from `application(_:handleEventsForBackgroundURLSession:completionHandler:)`
+    ///
     public func handleRelayUrlSessionEvents(identifier: String, completionHandler: @escaping () -> Void) {
         guard identifier == Relay.urlSessionIdentifier else { return }
         sessionCompletionHandler = completionHandler
     }
     
-    func reset() throws {
+
+    /// Removes all logs from the internal database. Logs already passed to the system for uploading will not be cancelled.
+    func reset() {
         do {
             try dbQueue?.inDatabase({ db in
                 try db.drop(table: identifier)
@@ -110,7 +136,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
-    func flushLogs() {
+    
+    /// Uploads all logs to the server.
+    public func flushLogs() {
         do {
             try dbQueue?.inDatabase({ db in
                 let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
@@ -128,6 +156,13 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
+
+    /// Helper function to create and upload an `URLSessionTask` to the server.
+    ///
+    /// - Parameters:
+    ///   - logRecord: record to be uploaded.
+    ///   - db: database instance.
+    ///
     private func uploadLogRecord(logRecord: LogRecord, db: Database) {
         do {
             let logUploadRequest: URLRequest = {
@@ -156,6 +191,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
+    
+    /// Ensures a `LogRecord` does not have an uploadTaskID not associated with any `URLSessionTasks` in the session.
     func cleanup() {
         // Get our tasks from the session and ensure we dont have a log record associated with a nonexistent task.
         urlSession.getAllTasks { [weak self] tasks in
@@ -178,7 +215,11 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
-    public func processLogUploadTask(task: URLSessionUploadTask) {
+    /// When a log succeeds or fails to upload, `processLogUploadTask` is called to do post processing.
+    ///
+    /// - Parameter task: The completed task.
+    ///
+    private func processLogUploadTask(task: URLSessionUploadTask) {
         do {
             try dbQueue?.inDatabase { db in
                 guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return  }
@@ -215,6 +256,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             print("unable to delete temporary log file: \(error)")
         }
     }
+    
+    // MARK: URLSessionTaskDelegate Methods
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let task = task as? URLSessionUploadTask {
