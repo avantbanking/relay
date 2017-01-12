@@ -2,7 +2,7 @@
 ![Platforms](https://img.shields.io/badge/platforms-ios%20%7C%20osx%20%7C%20watchos%20%7C%20tvos-lightgrey.svg)
 ![Languages](https://img.shields.io/badge/languages-swift-orange.svg)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
- [![Twitter](https://img.shields.io/badge/twitter-@AlamofireSF-blue.svg?style=flat)](http://twitter.com/zerofinancial)
+ [![Twitter](https://img.shields.io/badge/twitter-@zerofinancial-blue.svg?style=flat)](http://twitter.com/zerofinancial)
 
 
 # Relay
