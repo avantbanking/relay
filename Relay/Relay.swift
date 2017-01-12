@@ -13,18 +13,15 @@ import CocoaLumberjack
 
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
+    /// Session identifier for the `sharedURLSession`
     static let urlSessionIdentifier = "zerofinancial.inc.logger"
     
+    /// `RelayDelegate` is used to report successful/failed log uploads.
     public weak var delegate: RelayDelegate?
     
     /// The number of upload retries before the log is deleted.
     /// A nil value means it will retry indefinitely.
     public var uploadRetries = 3
-    
-    /// When true logs will be immediately uploaded. If set to true
-    /// and the app is in the background it will fall back to being 
-    /// discretionary to the system.
-    public var autoUpload = true
     
     /// Internal dbQueue, marked as internal for use when running tests.
     var dbQueue: DatabaseQueue?
@@ -34,20 +31,23 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// automatically.
     public var configuration: RelayRemoteConfiguration
 
+    /// Completion handler passed from the appDelegate's [application(_:handleEventsForBackgroundURLSession:completionHandler:) method](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1622941-application)
     var sessionCompletionHandler: (() -> Void)?
     
     /// The relay identifier is used to segment different relays to different
     /// databases.
     private var identifier: String
     
-    
+    /// A shared background session between all relays.
     private static var sharedUrlSession: URLSessionProtocol = {
         let backgroundConfig = URLSessionConfiguration.background(withIdentifier: Relay.urlSessionIdentifier)
         return URLSession(configuration: backgroundConfig)
     }()
     
+    /// A mock session for use with testing.
     private var testSession: URLSessionProtocol?
     
+    /// The active session to cut down on conditionals between testing and production.
     private var urlSession: URLSessionProtocol {
         if let testSession = testSession {
             return testSession
@@ -103,15 +103,16 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         cleanup()
     }
     
+
     override init() {
         fatalError("Please use init(_, _, _) instead.")
     }
     
     
     /// Call in `application(_:handleEventsForBackgroundURLSession:completionHandler:)` in order
-    /// for a relay to finish processing a log record once it succeeds/fails to upload. Take a
-    /// look [here](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1622941-application)
-    /// for more information.
+    /// for a relay to finish processing a log record once it succeeds/fails to upload. 
+    ///
+    /// - see also: [application(_:handleEventsForBackgroundURLSession:completionHandler:) documentation](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1622941-application)
     ///
     /// - Parameters:
     ///   - identifier: The identifier passed from `application(_:handleEventsForBackgroundURLSession:completionHandler:)`
@@ -138,7 +139,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     
     /// Uploads all logs to the server.
-    public func flushLogs() {
+    func flushLogs() {
         do {
             try dbQueue?.inDatabase({ db in
                 let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
@@ -248,6 +249,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
+    
+    /// Deletes a temporary file representing a `LogRecord`
+    ///
+    /// - Parameter record
     private func deleteTempFile(forRecord record: LogRecord) {
         let fileURL = relayPath().appendingPathComponent("\(record.uuid)")
         do {
@@ -276,9 +281,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 try logRecord.save(db)
                 DispatchQueue.global(qos: DispatchQoS.QoSClass.default).async {
                     guard let this = self else { return }
-                    if this.autoUpload {
-                        this.flushLogs()
-                    }
+                    this.flushLogs()
                 }
             })
         } catch {
