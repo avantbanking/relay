@@ -17,6 +17,7 @@ after_success:
 - git stash
 - git checkout gh-pages
 - git rm -rf .
+- git stash apply
 - mv docs/* .
 - rm -r docs
 - git add .
