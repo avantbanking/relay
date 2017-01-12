@@ -10,8 +10,11 @@ notifications:
 after_success: 
 - slather
 - jazzy
+- git -c user.name='travis' -c user.email='travis' commit -m init
+- git checkout $TRAVIS_BRANCH
 - git add docs
-- git commit -m "[ci skip] Documentation update."
+- git commit -m "[ci skip] Documentation update for $TRAVIS_BUILD_NUMBER"
+- git push -f -q https://ekimia:$GITHUB_TOKEN@github.com/zerofinancial/relay $TRAVIS_BRANCH &2>/dev/null
 - git push origin $TRAVIS_BRANCH
 env:
   global:
