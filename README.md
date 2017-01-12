@@ -5,6 +5,6 @@
 ![Languages](https://img.shields.io/badge/languages-swift-orange.svg)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
  [![Twitter](https://img.shields.io/badge/twitter-@zerofinancial-blue.svg?style=flat)](http://twitter.com/zerofinancial)
- 
+ ===
+
 #### [Documentation](https://zerofinancial.github.io/relay/)
-===
