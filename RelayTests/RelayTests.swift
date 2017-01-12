@@ -146,39 +146,40 @@ class RelayTests: XCTestCase, RelayDelegate {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
-//    func testCleanup() {
-//        let exp = expectation(description: "A log with a task ID no longer present in the session should be reuploaded.")
-//        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
-//        
-//        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
-//        
-//        relay = Relay(identifier:"testCleanup",
-//                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-//                       testSession:sessionMock)
-//        sessionMock.delegate = relay
-//        
-//        setupLogger()
-//        
-//        DDLogInfo("Testing one two...")
-//        DDLog.flushLog()
-//        
-//        // manually specify a nonexistent taskID
-//        let nonexistentTaskID = -12
-//        try! relay?.dbQueue?.inDatabase({ db in
-//            let record = try LogRecord.fetchOne(db)
-//            record?.uploadTaskID = nonexistentTaskID
-//            try record?.save(db)
-//            
-//        })
-//        relay?.cleanup()
-//        try! relay?.dbQueue?.inDatabase({ db in
-//            let record = try LogRecord.fetchOne(db)
-//            XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
-//            exp.fulfill()
-//        })
-//        
-//        waitForExpectations(timeout: 1, handler: nil)
-//    }
+    func testCleanup() {
+        let exp = expectation(description: "A log with a task ID no longer present in the session should be reuploaded.")
+        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
+        
+        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
+        sessionMock.taskResponseTime = 2
+
+        relay = Relay(identifier:"testCleanup",
+                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+                       testSession:sessionMock)
+        sessionMock.delegate = relay
+        
+        setupLogger()
+        
+        DDLogInfo("Testing one two...")
+        DDLog.flushLog()
+        
+        // manually specify a nonexistent taskID
+        let nonexistentTaskID = -12
+        try! relay?.dbQueue?.inDatabase({ db in
+            let record = try LogRecord.fetchOne(db)
+            record?.uploadTaskID = nonexistentTaskID
+            try record?.save(db)
+            
+        })
+        relay?.cleanup()
+        try! relay?.dbQueue?.inDatabase({ db in
+            let record = try LogRecord.fetchOne(db)
+            XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
+            exp.fulfill()
+        })
+        
+        waitForExpectations(timeout: 1, handler: nil)
+    }
     
     func testHandleRelayUrlSessionEvents() {
         relay = Relay(identifier:"testHandleRelayUrlSessionEvents",

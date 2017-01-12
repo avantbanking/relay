@@ -27,6 +27,8 @@ public final class URLSessionMock : URLSessionProtocol {
     var taskResponse: (Data?, URLResponse?, Error?)?
     var error: Error?
     var tasks: [URLSessionTask] = []
+    public var taskResponseTime: TimeInterval = 0
+
     
     public func finishTasksAndInvalidate() { }
     
@@ -39,6 +41,7 @@ public final class URLSessionMock : URLSessionProtocol {
         
         let uploadTaskMock = URLSessionUploadTaskMock(session: self, sessionDelegate: delegate as! URLSessionTaskDelegate)
         uploadTaskMock.taskResponse = taskResponse
+        uploadTaskMock.responseTime = taskResponseTime
         tasks.append(uploadTaskMock)
         
         return uploadTaskMock
@@ -49,6 +52,7 @@ public final class URLSessionMock : URLSessionProtocol {
         
         let uploadTaskMock = URLSessionUploadTaskMock(session: self, sessionDelegate: delegate as! URLSessionTaskDelegate)
         uploadTaskMock.taskResponse = taskResponse
+        uploadTaskMock.responseTime = taskResponseTime
         tasks.append(uploadTaskMock)
         
         return uploadTaskMock
@@ -65,6 +69,7 @@ public final class URLSessionMock : URLSessionProtocol {
     private class URLSessionUploadTaskMock : URLSessionUploadTask {
         weak var session: URLSessionMock?
         var taskResponse: (Data?, URLResponse?, Error?)?
+        var responseTime: TimeInterval = 0
         override var response: URLResponse? { return taskResponse?.1 }
         private var _taskIdentifier = Int(arc4random_uniform(100))
         weak private var sessionDelegate: URLSessionTaskDelegate?
@@ -78,7 +83,8 @@ public final class URLSessionMock : URLSessionProtocol {
         }
         
         override func resume() {
-            DispatchQueue.main.async {
+            let when = DispatchTime.now() + responseTime
+            DispatchQueue.main.asyncAfter(deadline: when) {
                 self.sessionDelegate!.urlSession!(URLSession(), task: self, didCompleteWithError: nil)
                 guard let index = self.session?.tasks.index(of: self) else { return }
                 self.session?.tasks.remove(at: index)

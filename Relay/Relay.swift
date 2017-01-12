@@ -247,10 +247,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             do {
                 try this.dbQueue?.inTransaction { db in
                     for record in try LogRecord.filter(Column("upload_task_id") != nil).fetchAll(db) {
-                        if tasks.flatMap({ record.uploadTaskID == $0.taskIdentifier }).first == nil {
+                        if tasks.filter({ record.uploadTaskID == $0.taskIdentifier }).isEmpty {
                             record.uploadTaskID = nil
                             try record.update(db)
-                            this.uploadLogRecord(logRecord: record, db: db)
+                             this.uploadLogRecord(logRecord: record, db: db)
                         }
                     }
                     
