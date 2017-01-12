@@ -14,7 +14,7 @@ import GRDB
 @testable import Relay
 
 class RelayTests: XCTestCase, RelayDelegate {
-    private var logger: Relay?
+    private var relay: Relay?
     private var successBlock: ((_ record: LogRecord) -> Void)?
     private var failureBlock: ((_ record: LogRecord, _ error: Error?,_ response: HTTPURLResponse?) -> Void)?
     
@@ -26,7 +26,7 @@ class RelayTests: XCTestCase, RelayDelegate {
         super.setUp()
         
         DDLog.removeAllLoggers()
-        DDLog.add(logger)
+        DDLog.add(relay)
         
         successBlock = nil
         failureBlock = nil
@@ -34,7 +34,7 @@ class RelayTests: XCTestCase, RelayDelegate {
     
     // Esure a log message is correctly inserted in the logger database
     func testLogger() {
-        logger = Relay(identifier:"testLogger",
+        relay = Relay(identifier:"testLogger",
                        configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
         setupLogger()
         
@@ -43,7 +43,7 @@ class RelayTests: XCTestCase, RelayDelegate {
         DDLogInfo("hello")
         DDLog.flushLog()
         
-        logger?.dbQueue?.inDatabase({ db in
+        relay?.dbQueue?.inDatabase({ db in
             let request = LogRecord.all()
             let count = try! request.fetchCount(db)
             XCTAssert(count == 1, "1 log entry should be present, got \(count) instead.")
@@ -57,10 +57,10 @@ class RelayTests: XCTestCase, RelayDelegate {
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
-        logger = Relay(identifier:"testSuccessfulLogFlush",
+        relay = Relay(identifier:"testSuccessfulLogFlush",
                        configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
                        testSession:sessionMock)
-        sessionMock.delegate = logger
+        sessionMock.delegate = relay
         setupLogger()
         
         DDLogInfo("This should successfully upload")
@@ -72,7 +72,7 @@ class RelayTests: XCTestCase, RelayDelegate {
             exp.fulfill()
         }
         
-        logger?.flushLogs()
+        relay?.flushLogs()
         
         waitForExpectations(timeout: 1, handler: nil)
     }
@@ -82,11 +82,11 @@ class RelayTests: XCTestCase, RelayDelegate {
         let error = NSError(domain: "loggerTest", code: 5, userInfo: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: error)
         
-        logger = Relay(identifier:"testFailedLogFlush",
+        relay = Relay(identifier:"testFailedLogFlush",
                        configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
                        testSession:sessionMock)
         
-        sessionMock.delegate = logger
+        sessionMock.delegate = relay
         
         setupLogger()
         
@@ -102,7 +102,7 @@ class RelayTests: XCTestCase, RelayDelegate {
                 self?.failureBlock = nil
             }
         }
-        logger?.flushLogs()
+        relay?.flushLogs()
         
         waitForExpectations(timeout: 1, handler: nil)
     }
@@ -113,11 +113,11 @@ class RelayTests: XCTestCase, RelayDelegate {
         
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
-        logger = Relay(identifier:"testFailedUploadRetries",
+        relay = Relay(identifier:"testFailedUploadRetries",
                        configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
                        testSession:sessionMock)
         
-        sessionMock.delegate = logger
+        sessionMock.delegate = relay
         
         setupLogger()
         
@@ -129,10 +129,10 @@ class RelayTests: XCTestCase, RelayDelegate {
         var failureCount = 0
         failureBlock = { record in
             failureCount += 1
-            if failureCount == self.logger!.uploadRetries - 1 {
+            if failureCount == self.relay!.uploadRetries - 1 {
                 // the database should be empty
                 DispatchQueue.main.async {
-                    self.logger?.dbQueue?.inDatabase({ db in
+                    self.relay?.dbQueue?.inDatabase({ db in
                         let request = LogRecord.all()
                         let count = try! request.fetchCount(db)
                         XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
@@ -141,56 +141,56 @@ class RelayTests: XCTestCase, RelayDelegate {
                 }
             }
         }
-        logger?.flushLogs()
+        relay?.flushLogs()
         
         waitForExpectations(timeout: 1, handler: nil)
     }
     
-    func testCleanup() {
-        let exp = expectation(description: "A log with a task ID no longer present in the session should be reuploaded.")
-        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
-        
-        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
-        
-        logger = Relay(identifier:"testCleanup",
-                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                       testSession:sessionMock)
-        sessionMock.delegate = logger
-        
-        setupLogger()
-        
-        DDLogInfo("Testing one two...")
-        DDLog.flushLog()
-        
-        // manually specify a nonexistent taskID
-        let nonexistentTaskID = -12
-        try! logger?.dbQueue?.inDatabase({ db in
-            let record = try LogRecord.fetchOne(db)
-            record?.uploadTaskID = nonexistentTaskID
-            try record?.save(db)
-            
-        })
-        logger?.cleanup()
-        try! logger?.dbQueue?.inDatabase({ db in
-            let record = try LogRecord.fetchOne(db)
-            XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
-            exp.fulfill()
-        })
-        
-        waitForExpectations(timeout: 1, handler: nil)
-    }
+//    func testCleanup() {
+//        let exp = expectation(description: "A log with a task ID no longer present in the session should be reuploaded.")
+//        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
+//        
+//        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
+//        
+//        relay = Relay(identifier:"testCleanup",
+//                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+//                       testSession:sessionMock)
+//        sessionMock.delegate = relay
+//        
+//        setupLogger()
+//        
+//        DDLogInfo("Testing one two...")
+//        DDLog.flushLog()
+//        
+//        // manually specify a nonexistent taskID
+//        let nonexistentTaskID = -12
+//        try! relay?.dbQueue?.inDatabase({ db in
+//            let record = try LogRecord.fetchOne(db)
+//            record?.uploadTaskID = nonexistentTaskID
+//            try record?.save(db)
+//            
+//        })
+//        relay?.cleanup()
+//        try! relay?.dbQueue?.inDatabase({ db in
+//            let record = try LogRecord.fetchOne(db)
+//            XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
+//            exp.fulfill()
+//        })
+//        
+//        waitForExpectations(timeout: 1, handler: nil)
+//    }
     
     func testHandleRelayUrlSessionEvents() {
-        logger = Relay(identifier:"testHandleRelayUrlSessionEvents",
+        relay = Relay(identifier:"testHandleRelayUrlSessionEvents",
                        configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
         
-        XCTAssertNil(logger!.sessionCompletionHandler)
+        XCTAssertNil(relay!.sessionCompletionHandler)
         
-        logger?.handleRelayUrlSessionEvents(identifier: Relay.urlSessionIdentifier,
+        relay?.handleRelayUrlSessionEvents(identifier: Relay.urlSessionIdentifier,
                                             completionHandler: {
                                                 print("all done.")
         })
-        XCTAssertTrue(logger!.sessionCompletionHandler != nil)
+        XCTAssertTrue(relay!.sessionCompletionHandler != nil)
     }
     
     //MARK: RelayDelegate methods
@@ -204,14 +204,13 @@ class RelayTests: XCTestCase, RelayDelegate {
     }
     
     // MARK: Helpers
-    
+
     private func setupLogger() {
-        logger?.autoUpload = false
         DDLog.removeAllLoggers()
-        DDLog.add(logger)
-        logger?.delegate = self
+        DDLog.add(relay)
+        relay?.delegate = self
     }
-    
+
     private static func deleteRelayDirectory() {
         do {
             try FileManager.default.removeItem(at: relayPath())

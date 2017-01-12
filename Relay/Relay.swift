@@ -26,10 +26,21 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// Internal dbQueue, marked as internal for use when running tests.
     var dbQueue: DatabaseQueue?
     
+    private var _configuration: RelayRemoteConfiguration?
+    
     /// Represents the network connection settings used when firing off network tasks.
     /// Changing the host and/or additional headers will update pending log uploads
     /// automatically.
-    public var configuration: RelayRemoteConfiguration
+    public var configuration: RelayRemoteConfiguration? {
+        get {
+            return _configuration
+        }
+        set {
+            guard _configuration != newValue else { return }
+            _configuration = newValue
+            updateConfigurationForPendingUploadTasks()
+        }
+    }
 
     /// Completion handler passed from the appDelegate's [application(_:handleEventsForBackgroundURLSession:completionHandler:) method](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1622941-application)
     var sessionCompletionHandler: (() -> Void)?
@@ -65,10 +76,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///   - configuration: see the documentation for `RelayRemoteConfiguration` for more information.
     ///
     ///   - testSession: only to be used when running tests!
-    required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) {
+    required public init(identifier: String, configuration: RelayRemoteConfiguration? = nil, testSession: URLSessionProtocol? = nil) {
         
         self.identifier = identifier
-        self.configuration = configuration
         if testSession != nil && !isRunningUnitTests() {
             fatalError("testSession can only be used when running unit tests.")
         }
@@ -100,6 +110,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             #endif
         }
         super.init()
+        self.configuration = configuration
+
         cleanup()
     }
     
@@ -167,8 +179,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     private func uploadLogRecord(logRecord: LogRecord, db: Database) {
         do {
             let logUploadRequest: URLRequest = {
-                var request = URLRequest(url: configuration.host)
-                if let additionalHTTPHeaders = configuration.additionalHttpHeaders {
+                var request = URLRequest(url: (configuration?.host)!)
+                if let additionalHTTPHeaders = configuration?.additionalHttpHeaders {
                     for (headerName, headerValue) in additionalHTTPHeaders {
                         request.setValue(headerValue, forHTTPHeaderField: headerName)
                     }
@@ -190,6 +202,40 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         } catch {
             print("SQL error during upload process: \(error)")
         }
+    }
+    
+    func updateConfigurationForPendingUploadTasks() {
+        
+        /// Returns true if the task's request aligns with the current `RelayRemoteConfiguration`
+        ///
+        /// - Parameter task
+        /// - Returns: Bool
+//        func checkTaskRequest(task: URLSessionTask) -> Bool {
+//            guard let request = task.currentRequest, let url = request.url else { return false }
+//            
+//            if let headers = configuration?.additionalHttpHeaders, let taskHeaders = request.allHTTPHeaderFields {
+//                for header in headers {
+//                    
+//                }
+//            } else {
+//                //
+//            }
+//        }
+//        urlSession.getAllTasks { tasks in
+//            for task in tasks {
+//                guard !checkTaskRequest(task: task) else { return }
+//                do {
+//                    try self.dbQueue?.inDatabase({ db in
+//                        guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return }
+//                        task.cancel()
+//                        
+//                        self.uploadLogRecord(logRecord: record, db: db)
+//                    })
+//                } catch {
+//                    
+//                }
+//            }
+//        }
     }
     
     
@@ -220,10 +266,18 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///
     /// - Parameter task: The completed task.
     ///
-    private func processLogUploadTask(task: URLSessionUploadTask) {
+    private func processLogUploadTask(task: URLSessionUploadTask, error: Error?) {
+        func deleteLogRecord(_ record: LogRecord, db: Database) {
+            do {
+                try record.delete(db)
+                deleteTempFile(forRecord: record)
+                } catch {
+                    print("sql error when deleting a record: \(error)")
+                }
+        }
         do {
             try dbQueue?.inDatabase { db in
-                guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return  }
+                guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return }
                 if let httpResponse = task.response as? HTTPURLResponse {
                     if httpResponse.statusCode != 200 {
                         record.uploadTaskID = nil
@@ -233,8 +287,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                         if record.uploadRetries < uploadRetries {
                             uploadLogRecord(logRecord: record, db: db)
                         } else {
-                            try record.delete(db)
-                            deleteTempFile(forRecord: record)
+                            deleteLogRecord(record, db: db)
                         }
                         delegate?.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
                     } else {
@@ -242,6 +295,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                         deleteTempFile(forRecord: record)
                         delegate?.relay(relay: self, didUploadLogRecord: record)
                     }
+                } else if let error = error as? NSError, error.code == NSURLErrorCancelled {
+                    deleteLogRecord(record, db: db)
                 }
             }
         } catch {
@@ -266,7 +321,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let task = task as? URLSessionUploadTask {
-            processLogUploadTask(task: task)
+            processLogUploadTask(task: task, error: error)
         }
         sessionCompletionHandler?()
     }
