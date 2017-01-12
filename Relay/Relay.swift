@@ -17,8 +17,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     public var autoUpload = true
     var dbQueue: DatabaseQueue?
     private var identifier: String
-    private var configuration: RelayRemoteConfiguration
-    
+    public var configuration: RelayRemoteConfiguration
+
     static let urlSessionIdentifier = "zerofinancial.inc.logger"
     var sessionCompletionHandler: (() -> Void)?
     
