@@ -10,8 +10,8 @@ import Foundation
 
 
 public class RelayRemoteConfiguration {
-    let host: URL
-    var additionalHttpHeaders: [String: String]?
+    public let host: URL
+    public var additionalHttpHeaders: [String: String]?
     required public init(host: URL, additionalHttpHeaders: [String: String]? = nil) {
         self.host = host
         self.additionalHttpHeaders = additionalHttpHeaders
