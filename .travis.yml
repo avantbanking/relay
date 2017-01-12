@@ -13,11 +13,7 @@ notifications:
 after_success: 
 - slather
 - jazzy
-- git -c user.name='travis' -c user.email='travis' commit -m init
-- git stash
-- git checkout gh-pages
-- git rm -rf .
-- git stash apply
+- git branch -u origin/gh-pages gh-pages
 - mv docs/* .
 - rm -r docs
 - git add .
