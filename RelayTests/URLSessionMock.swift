@@ -29,7 +29,6 @@ public final class URLSessionMock : URLSessionProtocol {
     var tasks: [URLSessionTask] = []
     public var taskResponseTime: TimeInterval = 0
 
-    
     public func finishTasksAndInvalidate() { }
     
     public func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Void) {
@@ -39,7 +38,9 @@ public final class URLSessionMock : URLSessionProtocol {
     public func uploadTask(with request: URLRequest, from bodyData: Data) -> URLSessionUploadTask {
         self.request = request
         
-        let uploadTaskMock = URLSessionUploadTaskMock(session: self, sessionDelegate: delegate as! URLSessionTaskDelegate)
+        let uploadTaskMock = URLSessionUploadTaskMock(session: self,
+                                                      sessionDelegate: delegate as! URLSessionTaskDelegate,
+                                                      request: request)
         uploadTaskMock.taskResponse = taskResponse
         uploadTaskMock.responseTime = taskResponseTime
         tasks.append(uploadTaskMock)
@@ -50,7 +51,9 @@ public final class URLSessionMock : URLSessionProtocol {
     public func uploadTask(with request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask {
         self.request = request
         
-        let uploadTaskMock = URLSessionUploadTaskMock(session: self, sessionDelegate: delegate as! URLSessionTaskDelegate)
+        let uploadTaskMock = URLSessionUploadTaskMock(session: self,
+                                                      sessionDelegate: delegate as! URLSessionTaskDelegate,
+                                                      request: request)
         uploadTaskMock.taskResponse = taskResponse
         uploadTaskMock.responseTime = taskResponseTime
         tasks.append(uploadTaskMock)
@@ -67,6 +70,8 @@ public final class URLSessionMock : URLSessionProtocol {
     }
 
     private class URLSessionUploadTaskMock : URLSessionUploadTask {
+        private var _currentRequest: URLRequest?
+        override var currentRequest: URLRequest? { return _currentRequest }
         weak var session: URLSessionMock?
         var taskResponse: (Data?, URLResponse?, Error?)?
         var responseTime: TimeInterval = 0
@@ -77,9 +82,10 @@ public final class URLSessionMock : URLSessionProtocol {
         override var taskIdentifier: Int { return _taskIdentifier }
         override var error: Error? { return taskResponse?.2 }
 
-        required init(session: URLSessionMock?, sessionDelegate: URLSessionTaskDelegate) {
+        required init(session: URLSessionMock?, sessionDelegate: URLSessionTaskDelegate, request: URLRequest?) {
             self.sessionDelegate = sessionDelegate
             self.session = session
+            _currentRequest = request
         }
         
         override func resume() {

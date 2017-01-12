@@ -26,19 +26,18 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// Internal dbQueue, marked as internal for use when running tests.
     var dbQueue: DatabaseQueue?
     
-    private var _configuration: RelayRemoteConfiguration?
+    private var _configuration: RelayRemoteConfiguration
     
     /// Represents the network connection settings used when firing off network tasks.
     /// Changing the host and/or additional headers will update pending log uploads
     /// automatically.
-    public var configuration: RelayRemoteConfiguration? {
+    public var configuration: RelayRemoteConfiguration {
         get {
             return _configuration
         }
         set {
             guard _configuration != newValue else { return }
             _configuration = newValue
-            updateConfigurationForPendingUploadTasks()
         }
     }
 
@@ -76,13 +75,14 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///   - configuration: see the documentation for `RelayRemoteConfiguration` for more information.
     ///
     ///   - testSession: only to be used when running tests!
-    required public init(identifier: String, configuration: RelayRemoteConfiguration? = nil, testSession: URLSessionProtocol? = nil) {
+    required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) {
         
         self.identifier = identifier
         if testSession != nil && !isRunningUnitTests() {
             fatalError("testSession can only be used when running unit tests.")
         }
         self.testSession = testSession
+        self._configuration = configuration
         
         do {
             dbQueue = try DatabaseQueue(path: try getRelayDirectory() + identifier + ".sqlite")
@@ -110,7 +110,6 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             #endif
         }
         super.init()
-        self.configuration = configuration
 
         cleanup()
     }
@@ -179,8 +178,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     private func uploadLogRecord(logRecord: LogRecord, db: Database) {
         do {
             let logUploadRequest: URLRequest = {
-                var request = URLRequest(url: (configuration?.host)!)
-                if let additionalHTTPHeaders = configuration?.additionalHttpHeaders {
+                var request = URLRequest(url: (configuration.host))
+                if let additionalHTTPHeaders = configuration.additionalHttpHeaders {
                     for (headerName, headerValue) in additionalHTTPHeaders {
                         request.setValue(headerValue, forHTTPHeaderField: headerName)
                     }
@@ -204,38 +203,42 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
-    func updateConfigurationForPendingUploadTasks() {
+    
+    /// Checks pending tasks to ensure they have the appropriate settings from the current `RelayRemoteConfiguration`
+    func recreatePendingUploadTasksIfNeeded(tasks: [URLSessionTask]) {
         
         /// Returns true if the task's request aligns with the current `RelayRemoteConfiguration`
         ///
         /// - Parameter task
         /// - Returns: Bool
-//        func checkTaskRequest(task: URLSessionTask) -> Bool {
-//            guard let request = task.currentRequest, let url = request.url else { return false }
-//            
-//            if let headers = configuration?.additionalHttpHeaders, let taskHeaders = request.allHTTPHeaderFields {
-//                for header in headers {
-//                    
-//                }
-//            } else {
-//                //
-//            }
-//        }
-//        urlSession.getAllTasks { tasks in
-//            for task in tasks {
-//                guard !checkTaskRequest(task: task) else { return }
-//                do {
-//                    try self.dbQueue?.inDatabase({ db in
-//                        guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return }
-//                        task.cancel()
-//                        
-//                        self.uploadLogRecord(logRecord: record, db: db)
-//                    })
-//                } catch {
-//                    
-//                }
-//            }
-//        }
+        func checkTaskRequest(task: URLSessionTask) -> Bool {
+            guard let request = task.currentRequest, let url = request.url else { return false }
+            
+            if let headers = configuration.additionalHttpHeaders, let taskHeaders = request.allHTTPHeaderFields {
+                for (key, value) in headers {
+                    if let matchingRequestHeader = taskHeaders[key], matchingRequestHeader != value { return false }
+                }
+            } else if configuration.additionalHttpHeaders != nil && request.allHTTPHeaderFields == nil ||
+                request.allHTTPHeaderFields != nil && configuration.additionalHttpHeaders == nil {
+                    return false
+            }
+            
+            return configuration.host == url
+        }
+
+        for task in tasks {
+            guard !checkTaskRequest(task: task) else { return }
+            do {
+                try self.dbQueue?.inDatabase({ [weak self] db in
+                    guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return }
+                    task.cancel()
+                    
+                    self?.uploadLogRecord(logRecord: record, db: db)
+                })
+            } catch {
+                print("SQL error recreating tasks: \(error)")
+            }
+        }
     }
     
     
@@ -253,6 +256,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                              this.uploadLogRecord(logRecord: record, db: db)
                         }
                     }
+                    
+                    this.recreatePendingUploadTasksIfNeeded(tasks: tasks)
                     
                     return .commit
                 }
