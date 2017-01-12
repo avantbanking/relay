@@ -13,7 +13,7 @@ notifications:
 after_success: 
 - slather
 - jazzy
-- git branch -b origin/gh-pages gh-pages
+- git checkout -b origin/gh-pages gh-pages
 - mv docs/* .
 - rm -r docs
 - git add .
