@@ -1,5 +1,8 @@
 language: objective-c
 osx_image: xcode8.2
+branches:
+  except:
+    - gh-pages
 before_install:
 - carthage bootstrap --platform iOS
 - gem install slather jazzy -N
@@ -11,11 +14,14 @@ after_success:
 - slather
 - jazzy
 - git -c user.name='travis' -c user.email='travis' commit -m init
-- git checkout $TRAVIS_BRANCH
-- git add docs
-- git commit -m "[ci skip] Documentation update for $TRAVIS_BUILD_NUMBER"
-- git push -f -q https://ekimia:$GITHUB_TOKEN@github.com/zerofinancial/relay $TRAVIS_BRANCH &2>/dev/null
-- git push origin $TRAVIS_BRANCH
+- git stash
+- git checkout gh-pages
+- git rm -rf .
+- mv docs/* .
+- rm -r docs
+- git add .
+- git commit -m "Documentation update for commit $TRAVIS_COMMIT during CI build #$TRAVIS_BUILD_NUMBER"
+- git push -f -q https://ekimia:$GITHUB_TOKEN@github.com/zerofinancial/relay gh-pages &2>/dev/null
 env:
   global:
     secure: aWsunKP+6/7GpZZAEgMOjMjX2ZsfdPab0E4j4EC7YOY5A/medKoRjLf4IQCmfVumJ/MG1tRSwxIOjq5+egPAk9jrJGvqti/isf2/0ZZDt+vFENLCKR1ccIZ8XjEHaGXJZ8KrXhGfRaxEMjdpF6T5iAzPQC3koOlyBLpsQxwpz3Hc8EYaAx4mUsj8hjSg8MUINvfJAIE1vOwV2b+TvnwamV2R4S51frb56CpHorg9IhoFsr8TQ78uQTtyxqdsMtVyt0HHpnxTml4eUzfBB00XUfLzt3POivveSphp9tQ3o5ZvC3o5KDbOJFJW7Kn3TC9HBxjUjnCjRJMaVfcikgf33E759Y2vUVFjTZJtL9Zb2Gbq/LDsczTEQ6Y3IA9Y35tJqJk4kyfUnicWoPGxqF3L2mXeKlYGG+WIdW1qR/MtrYVgTF2CSKdwKdpLCz4tYzx5A8xQ/HbD3ktwFoZwxUAGcmPrK5fFtrIJW03BabeYqOLzd7vS0JzO1V8yKUzWlanutVOlfQ/ublO5yB2+Tzpc5bUamL15+JI6Y4dtZa2HoFz07YA9NsxDbImOMnmOKov0mbJY0HVtmDW1pqUBOEltefCSq3K8aLvu+CoF7vF9W25OXdkV3TSGGd2KfKQ5UApqNx95SHjisCv/QbR9mJL8+3H1W2dkBG3sZCDXc4U8alI=
