@@ -3,18 +3,12 @@
 import Foundation
 
 public protocol URLSessionProtocol {
-    
-    var configuration: URLSessionConfiguration { get }
-    
-    var delegate: URLSessionDelegate? { get }
 
-    func uploadTask(with request: URLRequest, from bodyData: Data) -> URLSessionUploadTask
+    var delegate: URLSessionDelegate? { get }
 
     func uploadTask(with request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask
 
     func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Swift.Void)
-    
-    func finishTasksAndInvalidate()
 }
 
 extension URLSession: URLSessionProtocol { }
@@ -29,23 +23,9 @@ public final class URLSessionMock : URLSessionProtocol {
     var tasks: [URLSessionTask] = []
     public var taskResponseTime: TimeInterval = 0
 
-    public func finishTasksAndInvalidate() { }
     
     public func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Void) {
         completionHandler(tasks)
-    }
-
-    public func uploadTask(with request: URLRequest, from bodyData: Data) -> URLSessionUploadTask {
-        self.request = request
-        
-        let uploadTaskMock = URLSessionUploadTaskMock(session: self,
-                                                      sessionDelegate: delegate as! URLSessionTaskDelegate,
-                                                      request: request)
-        uploadTaskMock.taskResponse = taskResponse
-        uploadTaskMock.responseTime = taskResponseTime
-        tasks.append(uploadTaskMock)
-        
-        return uploadTaskMock
     }
     
     public func uploadTask(with request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask {
@@ -61,10 +41,6 @@ public final class URLSessionMock : URLSessionProtocol {
         return uploadTaskMock
     }
 
-    public var configuration: URLSessionConfiguration {
-        return URLSessionConfiguration.background(withIdentifier: "inc.zerofinancial.logger")
-    }
-    
     public init(data: Data?, response: URLResponse?, error: Error?) {
         taskResponse = (data, response, error)
     }

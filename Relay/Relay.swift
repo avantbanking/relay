@@ -13,9 +13,15 @@ import CocoaLumberjack
 
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
-    /// Session identifier for the `sharedURLSession`
-    static let urlSessionIdentifier = "zerofinancial.inc.logger"
-    
+    private var _identifier: String
+
+    /// The relay identifier is used to segment different relays to different
+    /// databases and act as identifiers for URLSessions. If you are using multiple
+    /// relays, please use unique identifiers.
+    public var identifier: String {
+        return _identifier
+    }
+
     /// `RelayDelegate` is used to report successful/failed log uploads.
     public weak var delegate: RelayDelegate?
     
@@ -38,7 +44,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         set {
             guard _configuration != newValue else { return }
             _configuration = newValue
-            urlSession.getAllTasks { [weak self] tasks in
+            urlSession?.getAllTasks { [weak self] tasks in
                 self?.recreatePendingUploadTasksIfNeeded(tasks: tasks)
             }
         }
@@ -46,29 +52,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
 
     /// Completion handler passed from the appDelegate's [application(_:handleEventsForBackgroundURLSession:completionHandler:) method](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1622941-application)
     var sessionCompletionHandler: (() -> Void)?
-    
-    /// The relay identifier is used to segment different relays to different
-    /// databases.
-    private var identifier: String
-    
-    /// A shared background session between all relays.
-    private static var sharedUrlSession: URLSessionProtocol = {
-        let backgroundConfig = URLSessionConfiguration.background(withIdentifier: Relay.urlSessionIdentifier)
-        return URLSession(configuration: backgroundConfig)
-    }()
-    
-    /// A mock session for use with testing.
-    private var testSession: URLSessionProtocol?
-    
+
     /// The active session to cut down on conditionals between testing and production.
-    var urlSession: URLSessionProtocol {
-        if let testSession = testSession {
-            return testSession
-        } else {
-            return Relay.sharedUrlSession
-        }
-    }
-    
+    var urlSession: URLSessionProtocol?
+
     /// Initializes a relay.
     ///
     /// - Parameters:
@@ -80,11 +67,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///   - testSession: only to be used when running tests!
     required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) {
         
-        self.identifier = identifier
+        _identifier = identifier
         if testSession != nil && !isRunningUnitTests() {
             fatalError("testSession can only be used when running unit tests.")
         }
-        self.testSession = testSession
         self._configuration = configuration
         
         do {
@@ -112,8 +98,18 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 fatalError("SQL error during initialization: \(error)")
             #endif
         }
+
         super.init()
 
+        if testSession != nil {
+            urlSession = testSession
+        } else {
+            let backgroundConfig = URLSessionConfiguration.background(withIdentifier: identifier)
+            urlSession = URLSession(configuration: backgroundConfig,
+                                    delegate: self,
+                                    delegateQueue: nil)
+        }
+        
         cleanup()
     }
     
@@ -135,7 +131,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///   - completionHandler: The completion handler passed from `application(_:handleEventsForBackgroundURLSession:completionHandler:)`
     ///
     public func handleRelayUrlSessionEvents(identifier: String, completionHandler: @escaping () -> Void) {
-        guard identifier == Relay.urlSessionIdentifier else { return }
+        guard identifier == self.identifier else { return }
         sessionCompletionHandler = completionHandler
     }
     
@@ -182,6 +178,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         do {
             let logUploadRequest: URLRequest = {
                 var request = URLRequest(url: (configuration.host))
+                request.httpMethod = "POST"
                 if let additionalHTTPHeaders = configuration.additionalHttpHeaders {
                     for (headerName, headerValue) in additionalHTTPHeaders {
                         request.setValue(headerValue, forHTTPHeaderField: headerName)
@@ -196,11 +193,11 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             let fileURL = relayPath().appendingPathComponent("\(logRecord.uuid)")
             try jsonData.write(to: fileURL, options: .atomic)
 
-            let task = urlSession.uploadTask(with: logUploadRequest, fromFile: fileURL)
+            let task = urlSession?.uploadTask(with: logUploadRequest, fromFile: fileURL)
             
-            logRecord.uploadTaskID = task.taskIdentifier
+            logRecord.uploadTaskID = task?.taskIdentifier
             try logRecord.update(db)
-            task.resume()
+            task?.resume()
         } catch {
             print("SQL error during upload process: \(error)")
         }
@@ -248,7 +245,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// Ensures a `LogRecord` does not have an uploadTaskID not associated with any `URLSessionTasks` in the session.
     func cleanup() {
         // Get our tasks from the session and ensure we dont have a log record associated with a nonexistent task.
-        urlSession.getAllTasks { [weak self] tasks in
+        urlSession?.getAllTasks { [weak self] tasks in
             guard let this = self else { return }
             do {
                 try this.dbQueue?.inTransaction { db in

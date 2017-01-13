@@ -187,7 +187,7 @@ class RelayTests: XCTestCase, RelayDelegate {
         
         XCTAssertNil(relay!.sessionCompletionHandler)
         
-        relay?.handleRelayUrlSessionEvents(identifier: Relay.urlSessionIdentifier,
+        relay?.handleRelayUrlSessionEvents(identifier: relay!.identifier,
                                            completionHandler: { })
         XCTAssertTrue(relay!.sessionCompletionHandler != nil)
     }
@@ -212,7 +212,7 @@ class RelayTests: XCTestCase, RelayDelegate {
         DDLog.flushLog()
         
         relay?.dbQueue?.inDatabase({ db in
-            relay?.urlSession.getAllTasks(completionHandler: { tasks in
+            relay?.urlSession?.getAllTasks(completionHandler: { tasks in
                 let task = tasks.first!
                 let taskRequest = task.currentRequest!
                 XCTAssertEqual(taskRequest.url!, firstRelayConfig.host)
@@ -222,7 +222,7 @@ class RelayTests: XCTestCase, RelayDelegate {
         let secondRelayConfig = RelayRemoteConfiguration(host: URL(string: "http://alsodoesntmatter.com")!)
         self.relay?.configuration = secondRelayConfig
         self.successBlock = { record in
-            self.relay?.urlSession.getAllTasks(completionHandler: { tasks in
+            self.relay?.urlSession?.getAllTasks(completionHandler: { tasks in
                 let task = tasks.first!
                 let taskRequest = task.currentRequest!
                 XCTAssertEqual(taskRequest.url!, secondRelayConfig.host)
@@ -230,7 +230,7 @@ class RelayTests: XCTestCase, RelayDelegate {
                 exp.fulfill()
             })
         }
-        
+
         waitForExpectations(timeout: 10, handler: nil)
     }
     
