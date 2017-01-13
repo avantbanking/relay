@@ -35,7 +35,7 @@ class RelayTests: XCTestCase, RelayDelegate {
     // Esure a log message is correctly inserted in the logger database
     func testLogger() {
         relay = Relay(identifier:"testLogger",
-                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
+                      configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
         setupLogger()
         
         let exp = expectation(description: "A log should be present in the log database.")
@@ -58,8 +58,8 @@ class RelayTests: XCTestCase, RelayDelegate {
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
         relay = Relay(identifier:"testSuccessfulLogFlush",
-                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                       testSession:sessionMock)
+                      configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+                      testSession:sessionMock)
         sessionMock.delegate = relay
         setupLogger()
         
@@ -83,8 +83,8 @@ class RelayTests: XCTestCase, RelayDelegate {
         let sessionMock = URLSessionMock(data: nil, response: response, error: error)
         
         relay = Relay(identifier:"testFailedLogFlush",
-                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                       testSession:sessionMock)
+                      configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+                      testSession:sessionMock)
         
         sessionMock.delegate = relay
         
@@ -114,8 +114,8 @@ class RelayTests: XCTestCase, RelayDelegate {
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         
         relay = Relay(identifier:"testFailedUploadRetries",
-                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                       testSession:sessionMock)
+                      configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+                      testSession:sessionMock)
         
         sessionMock.delegate = relay
         
@@ -151,11 +151,11 @@ class RelayTests: XCTestCase, RelayDelegate {
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
         
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
-        sessionMock.taskResponseTime = 2
-
+        sessionMock.taskResponseTime = 2 // We don't want the log upload immediately.
+        
         relay = Relay(identifier:"testCleanup",
-                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                       testSession:sessionMock)
+                      configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+                      testSession:sessionMock)
         sessionMock.delegate = relay
         
         setupLogger()
@@ -183,15 +183,55 @@ class RelayTests: XCTestCase, RelayDelegate {
     
     func testHandleRelayUrlSessionEvents() {
         relay = Relay(identifier:"testHandleRelayUrlSessionEvents",
-                       configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
+                      configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
         
         XCTAssertNil(relay!.sessionCompletionHandler)
         
         relay?.handleRelayUrlSessionEvents(identifier: Relay.urlSessionIdentifier,
-                                            completionHandler: {
-                                                print("all done.")
-        })
+                                           completionHandler: { })
         XCTAssertTrue(relay!.sessionCompletionHandler != nil)
+    }
+    
+    func testRecreatePendingUploadTasksIfNeeded() {
+        let exp = expectation(description: "Changing the relay configuration should cancel out and remake pending log upload tasks.")
+        
+        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
+        
+        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
+        sessionMock.taskResponseTime = 2 // We don't want the log upload immediately.
+        
+        let firstRelayConfig = RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!)
+        
+        relay = Relay(identifier:"testRecreatePendingUploadTasksIfNeeded",
+                      configuration: firstRelayConfig, testSession: sessionMock)
+        sessionMock.delegate = relay
+        
+        setupLogger()
+        
+        DDLogInfo("'What we have here is a failure to communicate' - Paul Newman, Cool Hand Luke")
+        DDLog.flushLog()
+        
+        relay?.dbQueue?.inDatabase({ db in
+            relay?.urlSession.getAllTasks(completionHandler: { tasks in
+                let task = tasks.first!
+                let taskRequest = task.currentRequest!
+                XCTAssertEqual(taskRequest.url!, firstRelayConfig.host)
+            })
+        })
+        
+        let secondRelayConfig = RelayRemoteConfiguration(host: URL(string: "http://alsodoesntmatter.com")!)
+        self.relay?.configuration = secondRelayConfig
+        self.successBlock = { record in
+            self.relay?.urlSession.getAllTasks(completionHandler: { tasks in
+                let task = tasks.first!
+                let taskRequest = task.currentRequest!
+                XCTAssertEqual(taskRequest.url!, secondRelayConfig.host)
+                
+                exp.fulfill()
+            })
+        }
+        
+        waitForExpectations(timeout: 10, handler: nil)
     }
     
     //MARK: RelayDelegate methods
@@ -205,13 +245,13 @@ class RelayTests: XCTestCase, RelayDelegate {
     }
     
     // MARK: Helpers
-
+    
     private func setupLogger() {
         DDLog.removeAllLoggers()
         DDLog.add(relay)
         relay?.delegate = self
     }
-
+    
     private static func deleteRelayDirectory() {
         do {
             try FileManager.default.removeItem(at: relayPath())

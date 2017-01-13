@@ -81,6 +81,19 @@ public final class URLSessionMock : URLSessionProtocol {
 
         override var taskIdentifier: Int { return _taskIdentifier }
         override var error: Error? { return taskResponse?.2 }
+        
+        public override func cancel() {
+            let when = DispatchTime.now() + responseTime
+            DispatchQueue.main.asyncAfter(deadline: when) {
+                self.sessionDelegate!.urlSession!(URLSession(),
+                                                  task: self,
+                                                  didCompleteWithError: NSError(domain: "relayTests",
+                                                                                code: NSURLErrorCancelled,
+                                                                                userInfo: nil))
+                guard let index = self.session?.tasks.index(of: self) else { return }
+                self.session?.tasks.remove(at: index)
+            }
+        }
 
         required init(session: URLSessionMock?, sessionDelegate: URLSessionTaskDelegate, request: URLRequest?) {
             self.sessionDelegate = sessionDelegate

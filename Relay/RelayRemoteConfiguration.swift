@@ -20,7 +20,13 @@ public struct RelayRemoteConfiguration: Equatable {
     // MARK: Equatable Protocol Methods
     
     public static func ==(lhs: RelayRemoteConfiguration, rhs: RelayRemoteConfiguration) -> Bool {
-        return true
+        if let lhsHeaders = lhs.additionalHttpHeaders, let rhsHeaders = rhs.additionalHttpHeaders, lhsHeaders != rhsHeaders {
+            return false
+        } else if (lhs.additionalHttpHeaders != nil && rhs.additionalHttpHeaders == nil) ||
+            (rhs.additionalHttpHeaders != nil && lhs.additionalHttpHeaders == nil) {
+            return false
+        }
+        
+        return lhs.host == rhs.host
     }
-    
 }

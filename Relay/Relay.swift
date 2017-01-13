@@ -38,6 +38,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         set {
             guard _configuration != newValue else { return }
             _configuration = newValue
+            urlSession.getAllTasks { [weak self] tasks in
+                self?.recreatePendingUploadTasksIfNeeded(tasks: tasks)
+            }
         }
     }
 
@@ -58,7 +61,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     private var testSession: URLSessionProtocol?
     
     /// The active session to cut down on conditionals between testing and production.
-    private var urlSession: URLSessionProtocol {
+    var urlSession: URLSessionProtocol {
         if let testSession = testSession {
             return testSession
         } else {
@@ -283,6 +286,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         do {
             try dbQueue?.inDatabase { db in
                 guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return }
+                if let error = error as? NSError, error.code == NSURLErrorCancelled {
+                    deleteLogRecord(record, db: db)
+                    return
+                }
                 if let httpResponse = task.response as? HTTPURLResponse {
                     if httpResponse.statusCode != 200 {
                         record.uploadTaskID = nil
@@ -300,8 +307,6 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                         deleteTempFile(forRecord: record)
                         delegate?.relay(relay: self, didUploadLogRecord: record)
                     }
-                } else if let error = error as? NSError, error.code == NSURLErrorCancelled {
-                    deleteLogRecord(record, db: db)
                 }
             }
         } catch {
