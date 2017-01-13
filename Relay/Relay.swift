@@ -260,13 +260,12 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                         }
                     }
                     
-                    this.recreatePendingUploadTasksIfNeeded(tasks: tasks)
-                    
                     return .commit
                 }
             } catch {
                 print("SQL error cleaning up records: \(error)")
             }
+            this.recreatePendingUploadTasksIfNeeded(tasks: tasks)
         }
     }
     
