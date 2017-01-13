@@ -18,7 +18,7 @@ after_success:
 - mv docs/* .
 - rm -r docs
 - git add .
-- "git commit -m 'Documentation update for commit $TRAVIS_COMMIT during CI build #$TRAVIS_BUILD_NUMBER'"
+- "git commit -m \"Documentation update for commit $TRAVIS_COMMIT during CI build #$TRAVIS_BUILD_NUMBER\""
 - git push -f https://ekimia:$GITHUB_TOKEN@github.com/zerofinancial/relay gh-pages
 env:
   global:
