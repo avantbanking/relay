@@ -42,7 +42,8 @@ Relay is licensed under either of
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be dual licensed as above, without any additional terms or conditions.
 
 ## About
-<img src="images/zeroLogo.jpg" width="120" height="33" />
+
+<img src="images/zeroLogo.jpg" width="119.5" height="33.5" />
 
 Relay is maintained by Zero. The names and logos for Zero and Relay are trademarks of Zero Financial Inc.
 Follow our [blog](https://zerofinancial.com/blog) or say hi on twitter [@zerofinancial](https://twitter.com/zerofinancial)
