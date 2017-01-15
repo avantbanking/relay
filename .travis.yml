@@ -14,4 +14,4 @@ after_success:
 env:
   global:
       - ENCRYPTION_LABEL: "6ae9c2fab656"
-      - COMMIT_AUTHOR_EMAIL: "you@example.com"
+      - COMMIT_AUTHOR_EMAIL: "robots@zerofinancial.com"
