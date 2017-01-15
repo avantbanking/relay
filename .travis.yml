@@ -4,8 +4,6 @@ branches:
   except:
     - gh-pages
 before_install:
-- git submodule update --init --recursive
-- carthage bootstrap --platform iOS
 - gem install slather jazzy -N
 script: bash deploy.sh
 notifications:
