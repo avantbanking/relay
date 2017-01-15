@@ -17,7 +17,7 @@ eval `ssh-agent -s`
 ssh-add deploy_key
 
 function doCompile {
-  ./compile.sh
+  sh compile.sh
 }
 
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify
