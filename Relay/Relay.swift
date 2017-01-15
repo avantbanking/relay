@@ -21,6 +21,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     public var identifier: String {
         return _identifier
     }
+    
+    /// The maximum amount of logs to store before older log records are discarded.
+    /// Discarding logs will occur on the next log logged to the database.
+    public var maxNumberOfLogs = 10000
 
     /// `RelayDelegate` is used to report successful/failed log uploads.
     public weak var delegate: RelayDelegate?
@@ -266,19 +270,20 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
     }
     
+    private func deleteLogRecord(_ record: LogRecord, db: Database) {
+        do {
+            try record.delete(db)
+            deleteTempFile(forRecord: record)
+        } catch {
+            print("sql error when deleting a record: \(error)")
+        }
+    }
+    
     /// When a log succeeds or fails to upload, `processLogUploadTask` is called to do post processing.
     ///
     /// - Parameter task: The completed task.
     ///
     private func processLogUploadTask(task: URLSessionUploadTask, error: Error?) {
-        func deleteLogRecord(_ record: LogRecord, db: Database) {
-            do {
-                try record.delete(db)
-                deleteTempFile(forRecord: record)
-                } catch {
-                    print("sql error when deleting a record: \(error)")
-                }
-        }
         do {
             try dbQueue?.inDatabase { db in
                 guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return }
@@ -339,6 +344,11 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier)
         do {
             try dbQueue?.inDatabase({ [weak self] db in
+                let logRecordCount = try LogRecord.fetchCount(db)
+                if logRecordCount >= (self?.maxNumberOfLogs)!,
+                    let oldestLogRecord = try LogRecord.fetchOne(db, "SELECT * FROM log_messages ORDER BY date") {
+                    self?.deleteLogRecord(oldestLogRecord, db: db)
+                }
                 try logRecord.save(db)
                 DispatchQueue.global(qos: DispatchQoS.QoSClass.default).async {
                     guard let this = self else { return }

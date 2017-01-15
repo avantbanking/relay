@@ -53,6 +53,29 @@ class RelayTests: XCTestCase, RelayDelegate {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
+    func testDiskQuota() {
+        relay = Relay(identifier:"testDiskQuota",
+                      configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!))
+        setupLogger()
+        relay!.maxNumberOfLogs = 10
+        
+        let exp = expectation(description: "The database should have at most the value of the `maxNumberOfLogs` property.")
+        
+        for _ in 0...relay!.maxNumberOfLogs + 1 {
+            DDLogInfo("hello hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohello")
+        }
+        DDLog.flushLog()
+        
+        relay?.dbQueue?.inDatabase({ db in
+            let request = LogRecord.all()
+            let count = try! request.fetchCount(db)
+            XCTAssert(count == relay!.maxNumberOfLogs, "\(relay!.maxNumberOfLogs) log entries should be present, got \(count) instead.")
+            exp.fulfill()
+        })
+        
+        waitForExpectations(timeout: 30, handler: nil)
+    }
+    
     func testSuccessfulLogFlush() {
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)

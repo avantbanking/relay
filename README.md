@@ -14,7 +14,7 @@
 ===
 
 Fatal crash rates are essential to monitor for compiled applications, especially on iOS where submitting a criticial bug fix
-is at the mercy of the app review team, but what about nonfatals that prevent or hamper your user's experience? Relay makes it easy to send logs to [Logstash](https://www.elastic.co/products/logstash), [Graylog](https://www.graylog.org), [Splunk](https://splunk.com), and other log aggregators. Designed around unreliable mobile connections, Relay leverages `URLSessionUploadTask`s to pass log data to the system process asap so you dont need to cross your fingers and hope the log uploads before the app is suspended. Pending log uploads are persisted across system reboots, and have a default retry behavior to ensure log data gets successfully sent.
+is at the mercy of the app review team, but what about nonfatals that prevent or hamper your user's experience? Relay makes it easy to send logs to [Logstash](https://www.elastic.co/products/logstash), [Graylog](https://www.graylog.org), [Splunk](https://splunk.com), and other log aggregators. Designed around unreliable mobile connections, Relay leverages URLSessionUploadTasks to pass log data to the system process asap so you dont need to cross your fingers and hope the log uploads before the app is suspended. Pending log uploads are persisted across system reboots, and have a default retry behavior to ensure log data gets successfully sent.
 
 ## Installation
 
