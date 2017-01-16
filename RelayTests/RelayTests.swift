@@ -169,6 +169,34 @@ class RelayTests: XCTestCase, RelayDelegate {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
+    func testReset() {
+        let exp = expectation(description: "No logs should be present after a reset.")
+
+        let sessionMock = URLSessionMock()
+        sessionMock.taskResponseTime = 10 // Make it long enough so the network task is still present when we switch configs
+        
+        let configOne = RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: ["Hello": "You."])
+        
+        relay = Relay(identifier:"testRemoteConfigurationUpdate",
+                      configuration: configOne,
+                      testSession:sessionMock)
+        sessionMock.delegate = relay
+        
+        setupLogger()
+        
+        DDLogInfo("Testing one two...")
+        DDLog.flushLog()
+        relay?.reset()
+        
+        relay?.dbQueue?.inDatabase({ db in
+            // Grab the network task and verify it has the information from configTwo
+            let count = try! LogRecord.fetchCount(db)
+            XCTAssert(count == 1, "No log entries should be present, got \(count) instead.")
+            exp.fulfill()
+        })
+        waitForExpectations(timeout: 1, handler: nil)
+    }
+    
     func testRemoteConfigurationUpdate() {
         let shouldntUpdateExp = expectation(description: "Changing the relay configuration with the different headers should cancel out and remake upload tasks.")
         

@@ -116,12 +116,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         
         cleanup()
     }
-    
 
-    override init() {
-        fatalError("Please use init(_, _, _) instead.")
-    }
-    
     
     /// Call in `application(_:handleEventsForBackgroundURLSession:completionHandler:)` in order
     /// for a relay to finish processing a log record once it succeeds/fails to upload. 
