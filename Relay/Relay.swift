@@ -78,24 +78,13 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         self._configuration = configuration
         
         do {
-            dbQueue = try DatabaseQueue(path: try getRelayDirectory() + identifier + ".sqlite")
+            let dbQueue = try DatabaseQueue(path: try getRelayDirectory() + identifier + ".sqlite")
+            self.dbQueue = dbQueue
             
-            try dbQueue?.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 guard try !db.tableExists(identifier) else { return }
                 
-                try db.create(table: LogRecord.TableName) { t in
-                    t.column("uuid", .text).primaryKey()
-                    t.column("message", .text)
-                    t.column("flag", .integer).notNull()
-                    t.column("level", .integer).notNull()
-                    t.column("context", .text)
-                    t.column("file", .text)
-                    t.column("function", .text)
-                    t.column("line", .integer)
-                    t.column("date", .datetime)
-                    t.column("upload_task_id", .integer)
-                    t.column("upload_retries", .integer).notNull().defaults(to: 0)
-                }
+                try Relay.makeTable(db: db)
             }
         } catch {
             #if DEBUG
@@ -115,6 +104,22 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         }
         
         cleanup()
+    }
+    
+    private static func makeTable(db: Database) throws {
+            try db.create(table: LogRecord.TableName) { t in
+                t.column("uuid", .text).primaryKey()
+                t.column("message", .text)
+                t.column("flag", .integer).notNull()
+                t.column("level", .integer).notNull()
+                t.column("context", .text)
+                t.column("file", .text)
+                t.column("function", .text)
+                t.column("line", .integer)
+                t.column("date", .datetime)
+                t.column("upload_task_id", .integer)
+                t.column("upload_retries", .integer).notNull().defaults(to: 0)
+            }
     }
 
     
@@ -139,7 +144,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     func reset() {
         do {
             try dbQueue?.inDatabase({ db in
-                try db.drop(table: identifier)
+                try db.drop(table: LogRecord.TableName)
+                try Relay.makeTable(db: db)
             })
         } catch {
             print("SQL error has occured when resetting the database: \(error)")
@@ -186,8 +192,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 return request
             }()
             
-            let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict(),
-                                                      options: .prettyPrinted)
+            let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict)
             
             let fileURL = relayPath().appendingPathComponent("\(logRecord.uuid)")
             try jsonData.write(to: fileURL, options: .atomic)
@@ -304,11 +309,17 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                         } else {
                             deleteLogRecord(record, db: db)
                         }
-                        delegate?.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
+                        if let delegate  = delegate as? RelayTestingDelegate {
+                            delegate.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
+                        }
+                        delegate?.relay(relay: self, didFailToUploadLogMessage: record.logMessage, error: task.error, response: httpResponse)
                     } else {
                         try record.delete(db)
                         deleteTempFile(forRecord: record)
-                        delegate?.relay(relay: self, didUploadLogRecord: record)
+                        if let delegate = delegate as? RelayTestingDelegate {
+                            delegate.relay(relay: self, didUploadLogRecord: record)
+                        }
+                        delegate?.relay(relay: self, didUploadLogMessage: record.logMessage)
                     }
                 }
             }

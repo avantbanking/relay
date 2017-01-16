@@ -14,6 +14,7 @@ import GRDB
 @testable import Relay
 
 class RelayTests: XCTestCase, RelayTestingDelegate {
+
     private var relay: Relay?
     private var successBlock: ((_ record: LogRecord) -> Void)?
     private var recordDeletionBlock: ((_ record: LogRecord) -> Void)?
@@ -220,6 +221,7 @@ class RelayTests: XCTestCase, RelayTestingDelegate {
             XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
             exp.fulfill()
         })
+
         waitForExpectations(timeout: 1, handler: nil)
     }
     
@@ -371,12 +373,15 @@ class RelayTests: XCTestCase, RelayTestingDelegate {
     }
 
     
-    //MARK: RelayDelegate methods
+    //MARK: RelayTestingDelegate methods
+    
+    public func relay(relay: Relay, didUploadLogMessage message: DDLogMessage) {
+        // unused.
+    }
     
     func relay(relay: Relay, didUploadLogRecord record: LogRecord) {
         successBlock?(record)
     }
-    
     
     func relay(relay: Relay, didDeleteLogRecord record: LogRecord) {
         recordDeletionBlock?(record)
@@ -385,6 +390,10 @@ class RelayTests: XCTestCase, RelayTestingDelegate {
     
     func relay(relay: Relay, didFailToUploadLogRecord record: LogRecord, error: Error?, response: HTTPURLResponse?) {
         failureBlock?(record, error, response)
+    }
+    
+    func relay(relay: Relay, didFailToUploadLogMessage message: DDLogMessage, error: Error?, response: HTTPURLResponse?) {
+        // unused.
     }
     
     // MARK: Helpers

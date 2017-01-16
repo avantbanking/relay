@@ -75,7 +75,7 @@ public class LogRecord : Record {
         return LogRecord.TableName
     }
     
-    func dict() -> [String: Any] {
+    var dict: [String: Any] {
         var dict: [String: Any] = [:]
         dict["uuid"] = uuid
         dict["message"] = message
@@ -85,4 +85,18 @@ public class LogRecord : Record {
         
         return dict
     }
+    
+    var logMessage: DDLogMessage {
+        return DDLogMessage(message: message,
+                                      level: DDLogLevel(rawValue: UInt(level))!,
+                                      flag: DDLogFlag(rawValue: UInt(flag)),
+                                      context: context,
+                                      file: file,
+                                      function: function,
+                                      line: UInt(line),
+                                      tag: nil,
+                                      options: DDLogMessageOptions(rawValue:0), // Only value CocoaLumberjack uses.
+                                      timestamp: date)
+    }
+    
 }
