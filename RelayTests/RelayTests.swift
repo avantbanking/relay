@@ -170,14 +170,15 @@ class RelayTests: XCTestCase, RelayDelegate {
     }
     
     func testRemoteConfigurationUpdate() {
-        let shouldntUpdateExp = expectation(description: "Changing the relay configuration with the same settings should not cancel out and remake upload tasks.")
-        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
+        let shouldntUpdateExp = expectation(description: "Changing the relay configuration with the different headers should cancel out and remake upload tasks.")
         
-        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
-        sessionMock.taskResponseTime = 2 // We don't want the log upload immediately.
+        let sessionMock = URLSessionMock()
+        sessionMock.taskResponseTime = 10 // Make it long enough so the network task is still present when we switch configs
         
-        relay = Relay(identifier:"testCleanup",
-                      configuration: RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!),
+        let configOne = RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: ["Hello": "You."])
+        
+        relay = Relay(identifier:"testRemoteConfigurationUpdate",
+                      configuration: configOne,
                       testSession:sessionMock)
         sessionMock.delegate = relay
         
@@ -186,21 +187,24 @@ class RelayTests: XCTestCase, RelayDelegate {
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
         
-        // manually specify a nonexistent taskID
-        let nonexistentTaskID = -12
-        try! relay?.dbQueue?.inDatabase({ db in
-            let record = try LogRecord.fetchOne(db)
-            record?.uploadTaskID = nonexistentTaskID
-            try record?.save(db)
-            
-        })
-        relay?.cleanup()
-        try! relay?.dbQueue?.inDatabase({ db in
-            let record = try LogRecord.fetchOne(db)
-            XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
-            shouldntUpdateExp.fulfill()
-        })
+        let configTwoHeaders = ["Goodbye": "See you later."]
+        let configTwo = RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: configTwoHeaders)
+        relay?.configuration = configTwo
         
+        relay?.dbQueue?.inDatabase({ _ in
+            // Grab the network task and verify it has the information from configTwo
+            relay?.urlSession?.getAllTasks(completionHandler: { tasks in
+                guard let task = tasks.first,
+                    let currentRequest = task.currentRequest,
+                    let requestHeaders = currentRequest.allHTTPHeaderFields,
+                    let configTwoKey = configTwoHeaders.keys.first else {
+                        XCTFail("Missing required objects!")
+                        return
+                }
+                XCTAssertEqual(requestHeaders[configTwoKey], configTwoHeaders[configTwoKey])
+                shouldntUpdateExp.fulfill()
+            })
+        })
         waitForExpectations(timeout: 1, handler: nil)
     }
 

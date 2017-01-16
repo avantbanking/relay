@@ -41,7 +41,7 @@ public final class URLSessionMock : URLSessionProtocol {
         return uploadTaskMock
     }
 
-    public init(data: Data?, response: URLResponse?, error: Error?) {
+    public init(data: Data? = nil, response: URLResponse? = nil, error: Error? = nil) {
         taskResponse = (data, response, error)
     }
 
