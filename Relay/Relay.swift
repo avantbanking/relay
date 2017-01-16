@@ -273,6 +273,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         do {
             try record.delete(db)
             deleteTempFile(forRecord: record)
+            if let delegate = delegate as? RelayTestingDelegate {
+                delegate.relay(relay: self, didDeleteLogRecord: record)
+            }
         } catch {
             print("sql error when deleting a record: \(error)")
         }

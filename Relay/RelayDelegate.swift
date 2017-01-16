@@ -13,3 +13,9 @@ public protocol RelayDelegate: NSObjectProtocol {
     
     func relay(relay: Relay, didFailToUploadLogRecord record: LogRecord, error: Error?, response: HTTPURLResponse?)
 }
+
+
+/// Protocol used for testing.
+protocol RelayTestingDelegate: RelayDelegate {
+    func relay(relay: Relay, didDeleteLogRecord record: LogRecord)
+}

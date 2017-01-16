@@ -77,11 +77,11 @@ public final class URLSessionMock : URLSessionProtocol {
         }
         
         override func resume() {
-            let when = DispatchTime.now() + responseTime
-            DispatchQueue.main.asyncAfter(deadline: when) {
-                self.sessionDelegate!.urlSession!(URLSession(), task: self, didCompleteWithError: nil)
-                guard let index = self.session?.tasks.index(of: self) else { return }
-                self.session?.tasks.remove(at: index)
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + responseTime) { [weak self] in
+                guard let this = self else { return }
+                this.sessionDelegate!.urlSession!(URLSession(), task: this, didCompleteWithError: this.taskResponse?.2)
+                guard let index = this.session?.tasks.index(of: this) else { return }
+                this.session?.tasks.remove(at: index)
             }
         }
     }

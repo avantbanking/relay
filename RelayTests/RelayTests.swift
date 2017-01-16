@@ -13,9 +13,10 @@ import GRDB
 
 @testable import Relay
 
-class RelayTests: XCTestCase, RelayDelegate {
+class RelayTests: XCTestCase, RelayTestingDelegate {
     private var relay: Relay?
     private var successBlock: ((_ record: LogRecord) -> Void)?
+    private var recordDeletionBlock: ((_ record: LogRecord) -> Void)?
     private var failureBlock: ((_ record: LogRecord, _ error: Error?,_ response: HTTPURLResponse?) -> Void)?
     
     override class func setUp() {
@@ -171,8 +172,27 @@ class RelayTests: XCTestCase, RelayDelegate {
     
     func testCancelledTask() {
         let exp = expectation(description: "A task cancelled should result in the log record being deleted.")
-
         
+        let error = NSError(domain: "", code: NSURLErrorCancelled, userInfo: nil)
+        let sessionMock = URLSessionMock(error: error)
+        
+        let configOne = RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!)
+        
+        relay = Relay(identifier:"testCancelledTask",
+                      configuration: configOne,
+                      testSession:sessionMock)
+        sessionMock.delegate = relay
+        
+        setupLogger()
+        
+        DDLogInfo("Testing one two...")
+        DDLog.flushLog()
+        
+        recordDeletionBlock = { record in
+            exp.fulfill()
+        }
+
+        waitForExpectations(timeout: 2, handler: nil)
     }
     
     func testReset() {
@@ -183,7 +203,7 @@ class RelayTests: XCTestCase, RelayDelegate {
         
         let configOne = RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: ["Hello": "You."])
         
-        relay = Relay(identifier:"testRemoteConfigurationUpdate",
+        relay = Relay(identifier:"testReset",
                       configuration: configOne,
                       testSession:sessionMock)
         sessionMock.delegate = relay
@@ -197,7 +217,7 @@ class RelayTests: XCTestCase, RelayDelegate {
         relay?.dbQueue?.inDatabase({ db in
             // Grab the network task and verify it has the information from configTwo
             let count = try! LogRecord.fetchCount(db)
-            XCTAssert(count == 1, "No log entries should be present, got \(count) instead.")
+            XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
             exp.fulfill()
         })
         waitForExpectations(timeout: 1, handler: nil)
@@ -356,6 +376,12 @@ class RelayTests: XCTestCase, RelayDelegate {
     func relay(relay: Relay, didUploadLogRecord record: LogRecord) {
         successBlock?(record)
     }
+    
+    
+    func relay(relay: Relay, didDeleteLogRecord record: LogRecord) {
+        recordDeletionBlock?(record)
+    }
+    
     
     func relay(relay: Relay, didFailToUploadLogRecord record: LogRecord, error: Error?, response: HTTPURLResponse?) {
         failureBlock?(record, error, response)
