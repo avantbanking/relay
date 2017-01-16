@@ -169,6 +169,12 @@ class RelayTests: XCTestCase, RelayDelegate {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
+    func testCancelledTask() {
+        let exp = expectation(description: "A task cancelled should result in the log record being deleted.")
+
+        
+    }
+    
     func testReset() {
         let exp = expectation(description: "No logs should be present after a reset.")
 
@@ -187,7 +193,7 @@ class RelayTests: XCTestCase, RelayDelegate {
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
         relay?.reset()
-        
+
         relay?.dbQueue?.inDatabase({ db in
             // Grab the network task and verify it has the information from configTwo
             let count = try! LogRecord.fetchCount(db)
@@ -198,7 +204,7 @@ class RelayTests: XCTestCase, RelayDelegate {
     }
     
     func testRemoteConfigurationUpdate() {
-        let shouldntUpdateExp = expectation(description: "Changing the relay configuration with the different headers should cancel out and remake upload tasks.")
+        let exp = expectation(description: "Should remake requests when the configuration changes.")
         
         let sessionMock = URLSessionMock()
         sessionMock.taskResponseTime = 10 // Make it long enough so the network task is still present when we switch configs
@@ -222,7 +228,7 @@ class RelayTests: XCTestCase, RelayDelegate {
         relay?.dbQueue?.inDatabase({ _ in
             // Grab the network task and verify it has the information from configTwo
             relay?.urlSession?.getAllTasks(completionHandler: { tasks in
-                guard let task = tasks.first,
+                guard let task = tasks.last,
                     let currentRequest = task.currentRequest,
                     let requestHeaders = currentRequest.allHTTPHeaderFields,
                     let configTwoKey = configTwoHeaders.keys.first else {
@@ -230,10 +236,29 @@ class RelayTests: XCTestCase, RelayDelegate {
                         return
                 }
                 XCTAssertEqual(requestHeaders[configTwoKey], configTwoHeaders[configTwoKey])
-                shouldntUpdateExp.fulfill()
             })
         })
-        waitForExpectations(timeout: 1, handler: nil)
+        
+        let configThreeHeaders = ["Hello Again": "It's been a while!"]
+        let configThree = RelayRemoteConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: configThreeHeaders)
+        
+        relay?.configuration = configThree
+        relay?.dbQueue?.inDatabase({ db in
+            // Grab the network task and verify it has the information from configTwo
+            relay?.urlSession?.getAllTasks(completionHandler: { tasks in
+                guard let record = try! LogRecord.fetchOne(db),
+                    let task = tasks.filter({ $0.taskIdentifier == record.uploadTaskID }).first,
+                    let currentRequest = task.currentRequest,
+                    let requestHeaders = currentRequest.allHTTPHeaderFields,
+                    let configThreeKey = configThreeHeaders.keys.first else {
+                        XCTFail("Missing required objects!")
+                        return
+                }
+                XCTAssertEqual(requestHeaders[configThreeKey], configThreeHeaders[configThreeKey])
+                exp.fulfill()
+            })
+        })
+        waitForExpectations(timeout: 2, handler: nil)
     }
 
     

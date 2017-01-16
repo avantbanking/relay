@@ -59,8 +59,7 @@ public final class URLSessionMock : URLSessionProtocol {
         override var error: Error? { return taskResponse?.2 }
         
         public override func cancel() {
-            let when = DispatchTime.now() + responseTime
-            DispatchQueue.main.asyncAfter(deadline: when) {
+            DispatchQueue.main.async() {
                 self.sessionDelegate!.urlSession!(URLSession(),
                                                   task: self,
                                                   didCompleteWithError: NSError(domain: "relayTests",

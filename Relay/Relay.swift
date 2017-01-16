@@ -215,7 +215,11 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             
             if let headers = configuration.additionalHttpHeaders, let taskHeaders = request.allHTTPHeaderFields {
                 for (key, value) in headers {
-                    if let matchingRequestHeader = taskHeaders[key], matchingRequestHeader != value { return false }
+                    if let matchingRequestHeader = taskHeaders[key], matchingRequestHeader != value {
+                        return false
+                    } else if taskHeaders[key] == nil {
+                        return false
+                    }
                 }
             } else if configuration.additionalHttpHeaders != nil && request.allHTTPHeaderFields == nil ||
                 request.allHTTPHeaderFields != nil && configuration.additionalHttpHeaders == nil {
