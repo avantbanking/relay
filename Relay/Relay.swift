@@ -82,7 +82,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             self.dbQueue = dbQueue
             
             try dbQueue.inDatabase { db in
-                guard try !db.tableExists(identifier) else { return }
+                guard try !db.tableExists(LogRecord.TableName) else { return }
                 
                 try Relay.makeTable(db: db)
             }
