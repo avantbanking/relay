@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/Zerofinancial/relay.svg?branch=master)](https://travis-ci.org/Zerofinancial/relay)
 [![Coverage Status](https://coveralls.io/repos/github/Zerofinancial/relay/badge.svg)](https://coveralls.io/github/Zerofinancial/relay)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
- [![Twitter](https://img.shields.io/badge/twitter-@zerofinancial-blue.svg?style=flat)](http://twitter.com/zerofinancial)
+[![Twitter](https://img.shields.io/badge/twitter-@zerofinancial-blue.svg?style=flat)](http://twitter.com/zerofinancial)
 
 ===
 
@@ -18,6 +18,12 @@ is at the mercy of the app review team, but what about nonfatals that prevent or
 
 ## Installation
 
+### Dependencies
+
+- Given this is a logger for CocoaLumberjack, CocaLumberjack is required.
+- [GRDB](https://github.com/groue/GRDB.swift) is used to maintain the log records created from each `DDLogMessage` passsed from CocoaLumberjack.
+  Each created `Relay` maintains it's own SQLite database located in the Documents folder on iOS, and Application Support on macOS.
+
 ### Carthage
 Add the following to your Cartfile:
 
@@ -25,8 +31,10 @@ Add the following to your Cartfile:
 github zerofinancial.com/relay ~> 1.0
 ```
 
+Be sure to add `Relay` and `GRDB` to your Carthage copy script.
+
 ### Manually
-Download the framework file off the releases page and add to your project
+Download the latest framework binary off the releases page, and [GRDB](https://github.com/groue/GRDB.swift). Add them to your project, and you're ready to go.
 
 ## Configuration
 Take a look at the [documentation](https://zerofinancial.github.io/relay/) for all configurable options.

@@ -36,12 +36,12 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// Internal dbQueue, marked as internal for use when running tests.
     var dbQueue: DatabaseQueue?
     
-    private var _configuration: RelayRemoteConfiguration
+    private var _configuration: RelayConfiguration
     
     /// Represents the network connection settings used when firing off network tasks.
     /// Changing the host and/or additional headers will update pending log uploads
     /// automatically.
-    public var configuration: RelayRemoteConfiguration {
+    public var configuration: RelayConfiguration {
         get {
             return _configuration
         }
@@ -66,10 +66,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///   - identifier: the identifier to be used for this relay. Each relay maintains it's own
     ///                 internal sqlite database for bookkeeping.
     ///
-    ///   - configuration: see the documentation for `RelayRemoteConfiguration` for more information.
+    ///   - configuration: see the documentation for `RelayConfiguration` for more information.
     ///
     ///   - testSession: only to be used when running tests!
-    required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) {
+    required public init(identifier: String, configuration: RelayConfiguration, testSession: URLSessionProtocol? = nil) {
         
         _identifier = identifier
         if testSession != nil && !isRunningUnitTests() {
@@ -208,10 +208,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
     
-    /// Checks pending tasks to ensure they have the appropriate settings from the current `RelayRemoteConfiguration`
+    /// Checks pending tasks to ensure they have the appropriate settings from the current `RelayConfiguration`
     func recreatePendingUploadTasksIfNeeded(tasks: [URLSessionTask]) {
         
-        /// Returns true if the task's request aligns with the current `RelayRemoteConfiguration`
+        /// Returns true if the task's request aligns with the current `RelayConfiguration`
         ///
         /// - Parameter task
         /// - Returns: Bool

@@ -9,7 +9,7 @@
 import Foundation
 
 
-public struct RelayRemoteConfiguration: Equatable {
+public struct RelayConfiguration: Equatable {
     public let host: URL
     public var additionalHttpHeaders: [String: String]?
     public init(host: URL, additionalHttpHeaders: [String: String]? = nil) {
@@ -19,7 +19,7 @@ public struct RelayRemoteConfiguration: Equatable {
     
     // MARK: Equatable Protocol Methods
     
-    public static func ==(lhs: RelayRemoteConfiguration, rhs: RelayRemoteConfiguration) -> Bool {
+    public static func ==(lhs: RelayConfiguration, rhs: RelayConfiguration) -> Bool {
         if let lhsHeaders = lhs.additionalHttpHeaders, let rhsHeaders = rhs.additionalHttpHeaders, lhsHeaders != rhsHeaders {
             return false
         } else if (lhs.additionalHttpHeaders != nil && rhs.additionalHttpHeaders == nil) ||
