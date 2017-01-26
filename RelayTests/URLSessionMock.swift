@@ -32,7 +32,7 @@ public final class URLSessionMock : URLSessionProtocol {
         self.request = request
         
         let uploadTaskMock = URLSessionUploadTaskMock(session: self,
-                                                      sessionDelegate: delegate as! URLSessionTaskDelegate,
+                                                      sessionDelegate: delegate as? URLSessionTaskDelegate,
                                                       request: request)
         uploadTaskMock.taskResponse = taskResponse
         uploadTaskMock.responseTime = taskResponseTime
@@ -46,6 +46,7 @@ public final class URLSessionMock : URLSessionProtocol {
     }
 
     private class URLSessionUploadTaskMock : URLSessionUploadTask {
+
         private var _currentRequest: URLRequest?
         override var currentRequest: URLRequest? { return _currentRequest }
         weak var session: URLSessionMock?
@@ -58,6 +59,7 @@ public final class URLSessionMock : URLSessionProtocol {
         override var taskIdentifier: Int { return _taskIdentifier }
         override var error: Error? { return taskResponse?.2 }
         
+
         public override func cancel() {
             DispatchQueue.main.async() {
                 self.sessionDelegate!.urlSession!(URLSession(),
@@ -70,20 +72,20 @@ public final class URLSessionMock : URLSessionProtocol {
             }
         }
 
-        required init(session: URLSessionMock?, sessionDelegate: URLSessionTaskDelegate, request: URLRequest?) {
+        required init(session: URLSessionMock?, sessionDelegate: URLSessionTaskDelegate?, request: URLRequest?) {
             self.sessionDelegate = sessionDelegate
             self.session = session
             _currentRequest = request
         }
-        
+
+
         override func resume() {
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + responseTime) { [weak self] in
                 guard let this = self else { return }
-                this.sessionDelegate!.urlSession!(URLSession(), task: this, didCompleteWithError: this.taskResponse?.2)
+                this.sessionDelegate?.urlSession!(URLSession(), task: this, didCompleteWithError: this.taskResponse?.2)
                 guard let index = this.session?.tasks.index(of: this) else { return }
                 this.session?.tasks.remove(at: index)
             }
         }
     }
 }
-

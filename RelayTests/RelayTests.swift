@@ -16,7 +16,7 @@ import GRDB
 class RelayTests: RelayTestCase {
     
     
-    // Esure a log message is correctly inserted in the logger database
+    // Ensures a log message is correctly inserted in the logger database
     func testLogger() {
         relay = Relay(identifier:"testLogger",
                       configuration: RelayConfiguration(host: URL(string: "http://doesntmatter.com")!))
@@ -37,16 +37,17 @@ class RelayTests: RelayTestCase {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
+
     func testDiskQuota() {
-        relay = Relay(identifier:"testDiskQuota",
-                      configuration: RelayConfiguration(host: URL(string: "http://doesntmatter.com")!))
-        setupLogger()
+        createRelay(withIdentifier: "testSuccessfulLogFlush",
+                    configuration: RelayConfiguration(host: URL(string: "http://example.com")!))
+
         relay!.maxNumberOfLogs = 10
         
         let exp = expectation(description: "The database should have at most the value of the `maxNumberOfLogs` property.")
         
         for _ in 0...relay!.maxNumberOfLogs + 1 {
-            DDLogInfo("hello hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohello")
+            DDLogInfo("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789")
         }
         DDLog.flushLog()
         
@@ -61,14 +62,11 @@ class RelayTests: RelayTestCase {
     }
     
     func testSuccessfulLogFlush() {
-        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
-        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
-        
-        relay = Relay(identifier:"testSuccessfulLogFlush",
-                      configuration: RelayConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                      testSession:sessionMock)
-        sessionMock.delegate = relay
-        setupLogger()
+        let sessionMock = URLSessionMock(response: HTTPURLResponse(url: URL(string: "http://example.com")!, statusCode: 200, httpVersion: nil, headerFields: nil))
+
+        createRelay(withIdentifier: "testSuccessfulLogFlush",
+                    configuration: RelayConfiguration(host: URL(string: "http://example.com")!),
+                    sessionMock: sessionMock)
         
         DDLogInfo("This should successfully upload")
         DDLog.flushLog()
@@ -89,13 +87,9 @@ class RelayTests: RelayTestCase {
         let error = NSError(domain: "loggerTest", code: 5, userInfo: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: error)
         
-        relay = Relay(identifier:"testFailedLogFlush",
-                      configuration: RelayConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                      testSession:sessionMock)
-        
-        sessionMock.delegate = relay
-        
-        setupLogger()
+        createRelay(withIdentifier: "testFailedLogFlush",
+                    configuration: RelayConfiguration(host: URL(string: "http://example.com")!),
+                    sessionMock: sessionMock)
         
         DDLogInfo("This should fail to upload")
         DDLog.flushLog()
@@ -110,23 +104,18 @@ class RelayTests: RelayTestCase {
             }
         }
         relay?.flushLogs()
-        
+
         waitForExpectations(timeout: 1, handler: nil)
     }
+
     
     func testFailedUploadRetries() {
         let exp = expectation(description: "A log past the number of upload retries should be deleted.")
-        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 500, httpVersion: nil, headerFields: nil)
-        
-        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
-        
-        relay = Relay(identifier:"testFailedUploadRetries",
-                      configuration: RelayConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                      testSession:sessionMock)
-        
-        sessionMock.delegate = relay
-        
-        setupLogger()
+        let sessionMock = URLSessionMock(response: HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 500, httpVersion: nil, headerFields: nil))
+
+        createRelay(withIdentifier: "testFailedUploadRetries",
+                    configuration: RelayConfiguration(host: URL(string: "http://example.com")!),
+                    sessionMock: sessionMock)
         
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
@@ -159,15 +148,8 @@ class RelayTests: RelayTestCase {
         let error = NSError(domain: "", code: NSURLErrorCancelled, userInfo: nil)
         let sessionMock = URLSessionMock(error: error)
         
-        let configOne = RelayConfiguration(host: URL(string: "http://doesntmatter.com")!)
-        
-        relay = Relay(identifier:"testCancelledTask",
-                      configuration: configOne,
-                      testSession:sessionMock)
-        sessionMock.delegate = relay
-        
-        setupLogger()
-        
+        createRelay(withIdentifier: "testCancelledTask", configuration: RelayConfiguration(host: URL(string: "http://example.com")!), sessionMock: sessionMock)
+
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
         
@@ -186,12 +168,7 @@ class RelayTests: RelayTestCase {
         
         let configOne = RelayConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: ["Hello": "You."])
         
-        relay = Relay(identifier:"testReset",
-                      configuration: configOne,
-                      testSession:sessionMock)
-        sessionMock.delegate = relay
-        
-        setupLogger()
+        createRelay(withIdentifier: "testReset", configuration: configOne, sessionMock: sessionMock)
         
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
@@ -214,11 +191,8 @@ class RelayTests: RelayTestCase {
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         sessionMock.taskResponseTime = 2 // We don't want the log upload immediately.
         
-        relay = Relay(identifier:"testCleanup",
-                      configuration: RelayConfiguration(host: URL(string: "http://doesntmatter.com")!),
-                      testSession:sessionMock)
-        sessionMock.delegate = relay
-        
+        createRelay(withIdentifier: "testCleanup", configuration: RelayConfiguration(host: URL(string: "http://example.com")!), sessionMock: sessionMock)
+
         setupLogger()
         
         DDLogInfo("Testing one two...")
@@ -252,46 +226,15 @@ class RelayTests: RelayTestCase {
                                            completionHandler: { })
         XCTAssertTrue(relay!.sessionCompletionHandler != nil)
     }
+
     
-    func testRecreatePendingUploadTasksIfNeeded() {
-        let exp = expectation(description: "Changing the relay configuration should cancel out and remake pending log upload tasks.")
+    private func createRelay(withIdentifier identifier: String, configuration: RelayConfiguration, sessionMock: URLSessionMock? = nil) {
+        relay = Relay(identifier:identifier,
+                      configuration: configuration,
+                      testSession:sessionMock)
         
-        let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
-        
-        let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
-        sessionMock.taskResponseTime = 2 // We don't want the log upload immediately.
-        
-        let firstRelayConfig = RelayConfiguration(host: URL(string: "http://doesntmatter.com")!)
-        
-        relay = Relay(identifier:"testRecreatePendingUploadTasksIfNeeded",
-                      configuration: firstRelayConfig, testSession: sessionMock)
-        sessionMock.delegate = relay
+        sessionMock?.delegate = relay
         
         setupLogger()
-        
-        DDLogInfo("'What we have here is a failure to communicate' - Paul Newman, Cool Hand Luke")
-        DDLog.flushLog()
-        
-        relay?.dbQueue?.inDatabase({ db in
-            relay?.urlSession?.getAllTasks(completionHandler: { tasks in
-                let task = tasks.first!
-                let taskRequest = task.currentRequest!
-                XCTAssertEqual(taskRequest.url!, firstRelayConfig.host)
-            })
-        })
-        
-        let secondRelayConfig = RelayConfiguration(host: URL(string: "http://alsodoesntmatter.com")!)
-        self.relay?.configuration = secondRelayConfig
-        self.successBlock = { record in
-            self.relay?.urlSession?.getAllTasks(completionHandler: { tasks in
-                let task = tasks.first!
-                let taskRequest = task.currentRequest!
-                XCTAssertEqual(taskRequest.url!, secondRelayConfig.host)
-                
-                exp.fulfill()
-            })
-        }
-
-        waitForExpectations(timeout: 10, handler: nil)
     }
 }
