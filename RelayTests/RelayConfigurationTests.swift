@@ -41,6 +41,7 @@ class RelayConfigurationTests: RelayTestCase {
         
         waitForExpectations(timeout: 1, handler: nil)
     }
+
     
     func testHostChange() {
         let exp = expectation(description: "Should remake requests when the host changes.")
@@ -68,6 +69,7 @@ class RelayConfigurationTests: RelayTestCase {
         
         waitForExpectations(timeout: 1, handler: nil)
     }
+
     
     private func createTestLogs(withRelayIdentifier identifier: String, config: RelayConfiguration) {
         let sessionMock = URLSessionMock()
