@@ -39,7 +39,7 @@ class RelayTests: RelayTestCase {
     
 
     func testDiskQuota() {
-        createRelay(withIdentifier: "testSuccessfulLogFlush",
+        createRelay(withIdentifier: "testDiskQuota",
                     configuration: RelayConfiguration(host: URL(string: "http://example.com")!))
 
         relay!.maxNumberOfLogs = 10
