@@ -1,2 +1,2 @@
 github "CocoaLumberjack/CocoaLumberjack" "3.0.0"
-github "groue/GRDB.swift" "v0.100.0"
+github "groue/GRDB.swift" "v0.101.1"

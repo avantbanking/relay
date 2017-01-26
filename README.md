@@ -1,5 +1,5 @@
 # Relay: A remote logger for [CocoaLumberjack](https://github.com/CocoaLumberjack/CocoaLumberjack).
-![Platforms](https://img.shields.io/badge/platforms-ios%20%7C%20osx%20%7C%20watchos%20%7C%20tvos-lightgrey.svg)
+![Platforms](https://img.shields.io/badge/platforms-ios%20%7C%20osx%20%7C%20watchos-lightgrey.svg)
 ![Languages](https://img.shields.io/badge/languages-swift%203-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)
 [![Build Status](https://travis-ci.org/Zerofinancial/relay.svg?branch=master)](https://travis-ci.org/Zerofinancial/relay)
@@ -31,7 +31,7 @@ Add the following to your Cartfile:
 github zerofinancial.com/relay ~> 1.0
 ```
 
-Be sure to add `Relay` and `GRDB` to your Carthage copy script.
+Be sure to add `Relay` and `GRDB` to your Carthage run script.
 
 ### Manually
 Download the latest framework binary off the releases page, and [GRDB](https://github.com/groue/GRDB.swift). Add them to your project, and you're ready to go.
