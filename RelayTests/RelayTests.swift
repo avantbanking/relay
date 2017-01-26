@@ -13,26 +13,8 @@ import GRDB
 
 @testable import Relay
 
-class RelayTests: XCTestCase, RelayTestingDelegate {
-
-    private var relay: Relay?
-    private var successBlock: ((_ record: LogRecord) -> Void)?
-    private var recordDeletionBlock: ((_ record: LogRecord) -> Void)?
-    private var failureBlock: ((_ record: LogRecord, _ error: Error?,_ response: HTTPURLResponse?) -> Void)?
+class RelayTests: RelayTestCase {
     
-    override class func setUp() {
-        RelayTests.deleteRelayDirectory()
-    }
-    
-    override func setUp() {
-        super.setUp()
-        
-        DDLog.removeAllLoggers()
-        DDLog.add(relay)
-        
-        successBlock = nil
-        failureBlock = nil
-    }
     
     // Esure a log message is correctly inserted in the logger database
     func testLogger() {
@@ -225,84 +207,6 @@ class RelayTests: XCTestCase, RelayTestingDelegate {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
-    func testRemoteConfigurationUpdate() {
-        let exp = expectation(description: "Should remake requests when the configuration changes.")
-        
-        let sessionMock = URLSessionMock()
-        sessionMock.taskResponseTime = 10 // Make it long enough so the network task is still present when we switch configs
-        
-        let configOne = RelayConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: ["Hello": "You."])
-        
-        relay = Relay(identifier:"testRemoteConfigurationUpdate",
-                      configuration: configOne,
-                      testSession:sessionMock)
-        sessionMock.delegate = relay
-        
-        setupLogger()
-        
-        DDLogInfo("Testing one two...")
-        DDLog.flushLog()
-        
-        let configTwoHeaders = ["Goodbye": "See you later."]
-        let configTwo = RelayConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: configTwoHeaders)
-        relay?.configuration = configTwo
-        
-        relay?.dbQueue?.inDatabase({ _ in
-            // Grab the network task and verify it has the information from configTwo
-            relay?.urlSession?.getAllTasks(completionHandler: { tasks in
-                guard let task = tasks.last,
-                    let currentRequest = task.currentRequest,
-                    let requestHeaders = currentRequest.allHTTPHeaderFields,
-                    let configTwoKey = configTwoHeaders.keys.first else {
-                        XCTFail("Missing required objects!")
-                        return
-                }
-                XCTAssertEqual(requestHeaders[configTwoKey], configTwoHeaders[configTwoKey])
-            })
-        })
-        
-        let configThreeHeaders = ["Hello Again": "It's been a while!"]
-        let configThree = RelayConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: configThreeHeaders)
-        
-        relay?.configuration = configThree
-        relay?.dbQueue?.inDatabase({ db in
-            // Grab the network task and verify it has the information from configThree
-            relay?.urlSession?.getAllTasks(completionHandler: { tasks in
-                guard let record = try! LogRecord.fetchOne(db),
-                    let task = tasks.filter({ $0.taskIdentifier == record.uploadTaskID }).first,
-                    let currentRequest = task.currentRequest,
-                    let requestHeaders = currentRequest.allHTTPHeaderFields,
-                    let configThreeKey = configThreeHeaders.keys.first else {
-                        XCTFail("Missing required objects!")
-                        return
-                }
-                XCTAssertEqual(requestHeaders[configThreeKey], configThreeHeaders[configThreeKey])
-            })
-        })
-        
-        // Test for changing the host.
-        let configFour = RelayConfiguration(host: URL(string: "http://newhost.com")!, additionalHttpHeaders: configThreeHeaders)
-        
-        relay?.configuration = configFour
-        relay?.dbQueue?.inDatabase({ db in
-            // Grab the network task and verify it has the information from configFour
-            relay?.urlSession?.getAllTasks(completionHandler: { tasks in
-                guard let record = try! LogRecord.fetchOne(db),
-                    let task = tasks.filter({ $0.taskIdentifier == record.uploadTaskID }).first,
-                    let currentRequest = task.currentRequest,
-                    let host = currentRequest.url else {
-                        XCTFail("Missing required objects!")
-                        return
-                }
-                XCTAssertEqual(host, configFour.host)
-                exp.fulfill()
-            })
-        })
-        
-        waitForExpectations(timeout: 2, handler: nil)
-    }
-
-    
     func testCleanup() {
         let exp = expectation(description: "A log with a task ID no longer present in the session should be reuploaded.")
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
@@ -389,45 +293,5 @@ class RelayTests: XCTestCase, RelayTestingDelegate {
         }
 
         waitForExpectations(timeout: 10, handler: nil)
-    }
-
-    
-    //MARK: RelayTestingDelegate methods
-    
-    public func relay(relay: Relay, didUploadLogMessage message: DDLogMessage) {
-        // unused.
-    }
-    
-    func relay(relay: Relay, didUploadLogRecord record: LogRecord) {
-        successBlock?(record)
-    }
-    
-    func relay(relay: Relay, didDeleteLogRecord record: LogRecord) {
-        recordDeletionBlock?(record)
-    }
-    
-    
-    func relay(relay: Relay, didFailToUploadLogRecord record: LogRecord, error: Error?, response: HTTPURLResponse?) {
-        failureBlock?(record, error, response)
-    }
-    
-    func relay(relay: Relay, didFailToUploadLogMessage message: DDLogMessage, error: Error?, response: HTTPURLResponse?) {
-        // unused.
-    }
-    
-    // MARK: Helpers
-    
-    private func setupLogger() {
-        DDLog.removeAllLoggers()
-        DDLog.add(relay)
-        relay?.delegate = self
-    }
-    
-    private static func deleteRelayDirectory() {
-        do {
-            try FileManager.default.removeItem(at: relayPath())
-        } catch {
-            // According to the documentation, checks to see if the operation will succeed first are discouraged.
-        }
     }
 }
