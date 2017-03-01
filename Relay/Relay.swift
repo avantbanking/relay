@@ -175,11 +175,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             let logUploadRequest: URLRequest = {
                 var request = URLRequest(url: (configuration.host))
                 request.httpMethod = "POST"
-                if let additionalHTTPHeaders = configuration.additionalHttpHeaders {
-                    for (headerName, headerValue) in additionalHTTPHeaders {
-                        request.setValue(headerValue, forHTTPHeaderField: headerName)
-                    }
+                for (headerName, headerValue) in configuration.httpHeaders {
+                    request.setValue(headerValue, forHTTPHeaderField: headerName)
                 }
+
                 return request
             }()
             
@@ -209,16 +208,16 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         func checkTaskRequest(task: URLSessionTask) -> Bool {
             guard let request = task.currentRequest, let url = request.url else { return false }
             
-            if let headers = configuration.additionalHttpHeaders, let taskHeaders = request.allHTTPHeaderFields {
-                for (key, value) in headers {
+            if let configuration = configuration,
+                let taskHeaders = request.allHTTPHeaderFields {
+                for (key, value) in configuration.httpHeaders {
                     if let matchingRequestHeader = taskHeaders[key], matchingRequestHeader != value {
                         return false
                     } else if taskHeaders[key] == nil {
                         return false
                     }
                 }
-            } else if configuration.additionalHttpHeaders != nil && request.allHTTPHeaderFields == nil ||
-                request.allHTTPHeaderFields != nil && configuration.additionalHttpHeaders == nil {
+            } else if request.allHTTPHeaderFields == nil {
                     return false
             }
             
