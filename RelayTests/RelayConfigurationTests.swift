@@ -84,7 +84,7 @@ class RelayConfigurationTests: RelayTestCase {
                           testSession:sessionMock)
         
         sessionMock.delegate = relay
-        setupLogger(relay)
+        setupRelay(relay)
         
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
