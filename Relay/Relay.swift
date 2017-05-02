@@ -73,6 +73,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     private let writeQueue: OperationQueue = {
         let opq = OperationQueue()
         opq.qualityOfService = .utility
+        opq.maxConcurrentOperationCount = 1
         
         return opq
     }()
@@ -144,6 +145,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     public func reset(_ completion: (() -> Void)? = nil) {
         write() { realm in
             realm.deleteAll()
+        }
+        write() { _ in
             DispatchQueue.global(qos: .utility).async {
                 completion?()
             }
@@ -208,8 +211,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         func checkTaskRequest(task: URLSessionTask) -> Bool {
             guard let request = task.currentRequest, let url = request.url else { return false }
             
-            if let configuration = configuration,
-                let taskHeaders = request.allHTTPHeaderFields {
+            if let taskHeaders = request.allHTTPHeaderFields {
                 for (key, value) in configuration.httpHeaders {
                     if let matchingRequestHeader = taskHeaders[key], matchingRequestHeader != value {
                         return false

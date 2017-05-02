@@ -11,6 +11,7 @@ import CocoaLumberjackSwift
 
 @testable import Relay
 
+
 class RelayConfigurationTests: RelayTestCase {
     
     func testHeaderUpdate() {
