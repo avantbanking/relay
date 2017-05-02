@@ -7,7 +7,6 @@ echo "--------------------------------"
 echo "Travis environmental variables:"
 printenv
 echo "--------------------------------"
-TARGET_BRANCH="gh-pages"
 
 # Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
 ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
@@ -23,49 +22,10 @@ function doCompile {
   sh compile.sh
 }
 
-if [[ -z "${TRAVIS_TAG}" ]]; then
-	echo "Skipping docs generation since we aren't building from a tag."
-    doCompile
-    exit 0
-fi
-
-# Generate the docs
-jazzy
-
-# Save some useful information
-REPO=`git config remote.origin.url`
-SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
-SHA=`git rev-parse --verify HEAD`
-
-# Clone the existing gh-pages for this repo into docs/
-# Create a new empty branch if gh-pages doesn't exist yet (should only happen on first deply)
-git clone $REPO docs
-cd docs
-git checkout $TARGET_BRANCH || git checkout --orphan $TARGET_BRANCH
-cd ..
-
-# Clean out existing contents
-rm -rf docs/**/* || exit 0
-
-# Run our compile script
 doCompile
 
-# Now let's go have some fun with the cloned repo
-cd docs
-git config user.name "Travis CI"
-git config user.email "$COMMIT_AUTHOR_EMAIL"
-
-# If there are no changes to the compiled out (e.g. this is a README update) then just bail.
-if [ -z `git diff --exit-code` ]; then
-    echo "No changes to the output on this push; exiting."
+if [[ "${TRAVIS_TAG}" ]]; then
+	bash generate-docs.sh
     exit 0
 fi
 
-# Commit the "changes", i.e. the new version.
-# The delta will show diffs between new and old versions.
-git add .
-git commit -m "Deploy to GitHub Pages: ${SHA}"
-
-
-# Now that we're all set up, we can push.
-git push $SSH_REPO $TARGET_BRANCH

@@ -40,9 +40,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         do {
             return try Realm(configuration: config)
         } catch {
-            #if DEBUG
             fatalError("Error initializing Realm: \(error)")
-            #endif
         }
     }
     
