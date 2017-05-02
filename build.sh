@@ -7,7 +7,6 @@ echo "--------------------------------"
 echo "Travis environmental variables:"
 printenv
 echo "--------------------------------"
-SOURCE_BRANCH="master"
 TARGET_BRANCH="gh-pages"
 
 # Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
@@ -23,13 +22,6 @@ ssh-add deploy_key
 function doCompile {
   sh compile.sh
 }
-
-# Pull requests and commits to other branches shouldn't try to deploy, just build to verify
-if [ "$TRAVIS_PULL_REQUEST" != "false" -o "$TRAVIS_BRANCH" != "$SOURCE_BRANCH" ]; then
-    echo "Skipping deploy; just doing a build."
-    doCompile
-    exit 0
-fi
 
 if [[ -z "${TRAVIS_TAG}" ]]; then
 	echo "Skipping docs generation since we aren't building from a tag."
