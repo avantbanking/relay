@@ -16,6 +16,7 @@ private func createRelayDirectoryIfNeeded() throws {
                                             attributes: nil)
 }
 
+
 func getRelayDirectory() throws -> String {
     do {
         try createRelayDirectoryIfNeeded()
@@ -26,15 +27,24 @@ func getRelayDirectory() throws -> String {
     return relayPath().absoluteString
 }
 
+
 func relayPath() -> URL {
     let basePath: URL
-    #if os(OSX)
-        basePath = FileManager.default.urls(for: .applicationSupportDirectory,
+    
+    if isRunningUnitTests() {
+        basePath = FileManager.default.urls(for: .cachesDirectory,
                                             in: .userDomainMask).first!
-    #else
+    } else {
         basePath = FileManager.default.urls(for: .documentDirectory,
                                             in: .userDomainMask).first!
-    #endif
-    
+    }
+
+    let path = basePath.appendingPathComponent("relay")
+    do {
+        try FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
+    } catch {
+        print("Error creating directory for relay")
+    }
+
     return basePath.appendingPathComponent("relay")
 }

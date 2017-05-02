@@ -9,6 +9,7 @@
 import Foundation
 import CocoaLumberjack
 
+
 public protocol RelayDelegate: NSObjectProtocol {
     func relay(relay: Relay, didUploadLogMessage message: DDLogMessage)
     
@@ -18,6 +19,8 @@ public protocol RelayDelegate: NSObjectProtocol {
 
 /// Protocol used for testing.
 protocol RelayTestingDelegate: RelayDelegate {
+    
+    func relayDidFinishFlush(relay: Relay)
     
     func relay(relay: Relay, didUploadLogRecord record: LogRecord)
     

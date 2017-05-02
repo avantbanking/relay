@@ -1,2 +1,2 @@
-github "groue/GRDB.swift"
+github "realm/realm-cocoa" "v2.6.2"
 github "CocoaLumberjack/CocoaLumberjack" ~> 3.0
