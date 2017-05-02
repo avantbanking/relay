@@ -34,7 +34,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// A nil value means it will retry indefinitely.
     public var uploadRetries = 3
     
-    /// Internal dbQueue, marked as internal for use when running tests.
+    /// Internal database, marked as internal for use when running tests.
     var realm: Realm {
         let config = Realm.Configuration(fileURL: relayPath().appendingPathComponent(identifier + ".realm"), readOnly: false, schemaVersion: 1)
         do {
@@ -45,8 +45,6 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             #endif
         }
     }
-    
-    private var _configuration: RelayConfiguration
     
     /// Represents the network connection settings used when firing off network tasks.
     /// Changing the host and/or additional headers will update pending log uploads
@@ -67,30 +65,18 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// Completion handler passed from the appDelegate's [application(_:handleEventsForBackgroundURLSession:completionHandler:) method](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1622941-application)
     var sessionCompletionHandler: (() -> Void)?
 
-    /// The active session to cut down on conditionals between testing and production.
+    /// The active session, confirming to URLSessionProtcol to aid in testing.
     var urlSession: URLSessionProtocol?
     
-    let writeQueue: OperationQueue = {
+    private var _configuration: RelayConfiguration
+
+    private let writeQueue: OperationQueue = {
         let opq = OperationQueue()
         opq.qualityOfService = .utility
-        opq.maxConcurrentOperationCount = 1
         
         return opq
     }()
-    
-    
-    public func write(_ code: @escaping (_ realm: Realm) -> Void) {
-        writeQueue.addOperation { [weak self] in
-            guard let realm = self?.realm else { return }
-            do {
-                try realm.write() {
-                    code(realm)
-                }
-            } catch {
-                print("error writing object: \(error)")
-            }
-        }
-    }
+
 
     /// Initializes a relay.
     ///
@@ -121,9 +107,22 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         
         cleanup()
     }
-
-
     
+
+    func write(_ code: @escaping (_ realm: Realm) -> Void) {
+        writeQueue.addOperation { [weak self] in
+            guard let realm = self?.realm else { return }
+            do {
+                try realm.write() {
+                    code(realm)
+                }
+            } catch {
+                print("error writing object: \(error)")
+            }
+        }
+    }
+
+
     /// Call in `application(_:handleEventsForBackgroundURLSession:completionHandler:)` in order
     /// for a relay to finish processing a log record once it succeeds/fails to upload. 
     ///
@@ -142,9 +141,12 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
 
     /// Removes all logs from the internal database. Logs already passed to the system for uploading will not be cancelled.
-    func reset() {
+    public func reset(_ completion: (() -> Void)? = nil) {
         write() { realm in
             realm.deleteAll()
+            DispatchQueue.global(qos: .utility).async {
+                completion?()
+            }
         }
     }
     
