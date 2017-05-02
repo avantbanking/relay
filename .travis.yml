@@ -6,7 +6,7 @@ branches:
   except:
     - gh-pages
 before_install:
-- gem install slather jazzy -N
+- gem install slather jazzy fastlane -N
 script: bash deploy.sh
 notifications:
   slack:
