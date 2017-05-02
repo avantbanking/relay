@@ -9,62 +9,64 @@
 import XCTest
 import CocoaLumberjack
 import CocoaLumberjackSwift
-import GRDB
+import Realm
+import RealmSwift
 
 @testable import Relay
+
 
 class RelayTests: RelayTestCase {
     
     
     // Ensures a log message is correctly inserted in the logger database
     func testLogger() {
-        relay = Relay(identifier:"testLogger",
-                      configuration: RelayConfiguration(host: URL(string: "http://doesntmatter.com")!))
+        let relay = Relay(identifier:"testLogger",
+                          configuration: RelayConfiguration(host: URL(string: "http://doesntmatter.com")!))
+        self.relay = relay
         setupLogger()
         
         let exp = expectation(description: "A log should be present in the log database.")
-        
+
         DDLogInfo("hello")
         DDLog.flushLog()
         
-        relay?.dbQueue?.inDatabase({ db in
-            let request = LogRecord.all()
-            let count = try! request.fetchCount(db)
+        relay.write() { realm in
+            let count = relay.realm.objects(LogRecord.self).count
             XCTAssert(count == 1, "1 log entry should be present, got \(count) instead.")
             exp.fulfill()
-        })
+        }
+
         
-        waitForExpectations(timeout: 1, handler: nil)
+        waitForExpectations(timeout: 5, handler: nil)
     }
     
 
     func testDiskQuota() {
-        createRelay(withIdentifier: "testDiskQuota",
+        let relay = createRelay(withIdentifier: "testDiskQuota",
                     configuration: RelayConfiguration(host: URL(string: "http://example.com")!))
 
-        relay!.maxNumberOfLogs = 10
+        relay.maxNumberOfLogs = 10
         
         let exp = expectation(description: "The database should have at most the value of the `maxNumberOfLogs` property.")
         
-        for _ in 0...relay!.maxNumberOfLogs + 1 {
+        for _ in 0...relay.maxNumberOfLogs + 1 {
             DDLogInfo("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789")
         }
         DDLog.flushLog()
         
-        relay?.dbQueue?.inDatabase({ db in
-            let request = LogRecord.all()
-            let count = try! request.fetchCount(db)
-            XCTAssert(count == relay!.maxNumberOfLogs, "\(relay!.maxNumberOfLogs) log entries should be present, got \(count) instead.")
+        relay.write() { realm in
+            let count = relay.realm.objects(LogRecord.self).count
+            XCTAssert(count == relay.maxNumberOfLogs, "\(relay.maxNumberOfLogs) log entries should be present, got \(count) instead.")
             exp.fulfill()
-        })
+        }
         
-        waitForExpectations(timeout: 30, handler: nil)
+        waitForExpectations(timeout: 5, handler: nil)
     }
     
     func testSuccessfulLogFlush() {
         let sessionMock = URLSessionMock(response: HTTPURLResponse(url: URL(string: "http://example.com")!, statusCode: 200, httpVersion: nil, headerFields: nil))
 
-        createRelay(withIdentifier: "testSuccessfulLogFlush",
+        let relay = createRelay(withIdentifier: "testSuccessfulLogFlush",
                     configuration: RelayConfiguration(host: URL(string: "http://example.com")!),
                     sessionMock: sessionMock)
         
@@ -77,9 +79,9 @@ class RelayTests: RelayTestCase {
             exp.fulfill()
         }
         
-        relay?.flushLogs()
+        relay.flushLogs()
         
-        waitForExpectations(timeout: 1, handler: nil)
+        waitForExpectations(timeout: 5, handler: nil)
     }
     
     func testFailedLogFlush() {
@@ -87,7 +89,7 @@ class RelayTests: RelayTestCase {
         let error = NSError(domain: "loggerTest", code: 5, userInfo: nil)
         let sessionMock = URLSessionMock(data: nil, response: response, error: error)
         
-        createRelay(withIdentifier: "testFailedLogFlush",
+        let relay = createRelay(withIdentifier: "testFailedLogFlush",
                     configuration: RelayConfiguration(host: URL(string: "http://example.com")!),
                     sessionMock: sessionMock)
         
@@ -103,9 +105,9 @@ class RelayTests: RelayTestCase {
                 self?.failureBlock = nil
             }
         }
-        relay?.flushLogs()
+        relay.flushLogs()
 
-        waitForExpectations(timeout: 1, handler: nil)
+        waitForExpectations(timeout: 5, handler: nil)
     }
 
     
@@ -113,33 +115,24 @@ class RelayTests: RelayTestCase {
         let exp = expectation(description: "A log past the number of upload retries should be deleted.")
         let sessionMock = URLSessionMock(response: HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 500, httpVersion: nil, headerFields: nil))
 
-        createRelay(withIdentifier: "testFailedUploadRetries",
+        let relay = createRelay(withIdentifier: "testFailedUploadRetries",
                     configuration: RelayConfiguration(host: URL(string: "http://example.com")!),
                     sessionMock: sessionMock)
         
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
-        
-        // The default number of retries is 3, so let's ensure our failureBlock is called 3 times.
-        
-        var failureCount = 0
+
         failureBlock = { record in
-            failureCount += 1
-            if failureCount == self.relay!.uploadRetries - 1 {
-                // the database should be empty
-                DispatchQueue.main.async {
-                    self.relay?.dbQueue?.inDatabase({ db in
-                        let request = LogRecord.all()
-                        let count = try! request.fetchCount(db)
-                        XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
-                        exp.fulfill()
-                    })
-                }
+            // the database should be empty
+            relay.write() { realm in
+                let count = relay.realm.objects(LogRecord.self).count
+                XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
+                exp.fulfill()
             }
         }
-        relay?.flushLogs()
+        relay.flushLogs()
         
-        waitForExpectations(timeout: 1, handler: nil)
+        waitForExpectations(timeout: 5, handler: nil)
     }
     
     func testCancelledTask() {
@@ -148,7 +141,7 @@ class RelayTests: RelayTestCase {
         let error = NSError(domain: "", code: NSURLErrorCancelled, userInfo: nil)
         let sessionMock = URLSessionMock(error: error)
         
-        createRelay(withIdentifier: "testCancelledTask", configuration: RelayConfiguration(host: URL(string: "http://example.com")!), sessionMock: sessionMock)
+        _ = createRelay(withIdentifier: "testCancelledTask", configuration: RelayConfiguration(host: URL(string: "http://example.com")!), sessionMock: sessionMock)
 
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
@@ -157,9 +150,10 @@ class RelayTests: RelayTestCase {
             exp.fulfill()
         }
 
-        waitForExpectations(timeout: 2, handler: nil)
+        waitForExpectations(timeout: 5, handler: nil)
     }
     
+
     func testReset() {
         let exp = expectation(description: "No logs should be present after a reset.")
 
@@ -168,22 +162,23 @@ class RelayTests: RelayTestCase {
         
         let configOne = RelayConfiguration(host: URL(string: "http://doesntmatter.com")!, additionalHttpHeaders: ["Hello": "You."])
         
-        createRelay(withIdentifier: "testReset", configuration: configOne, sessionMock: sessionMock)
+        let relay = createRelay(withIdentifier: "testReset", configuration: configOne, sessionMock: sessionMock)
         
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
-        relay?.reset()
-
-        relay?.dbQueue?.inDatabase({ db in
+        relay.reset()
+        
+        relay.write() { realm in
             // Grab the network task and verify it has the information from configTwo
-            let count = try! LogRecord.fetchCount(db)
+            let count = relay.realm.objects(LogRecord.self).count
             XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
             exp.fulfill()
-        })
+        }
 
-        waitForExpectations(timeout: 1, handler: nil)
+        waitForExpectations(timeout: 5, handler: nil)
     }
     
+
     func testCleanup() {
         let exp = expectation(description: "A log with a task ID no longer present in the session should be reuploaded.")
         let response = HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
@@ -191,7 +186,7 @@ class RelayTests: RelayTestCase {
         let sessionMock = URLSessionMock(data: nil, response: response, error: nil)
         sessionMock.taskResponseTime = 2 // We don't want the log upload immediately.
         
-        createRelay(withIdentifier: "testCleanup", configuration: RelayConfiguration(host: URL(string: "http://example.com")!), sessionMock: sessionMock)
+        let relay = createRelay(withIdentifier: "testCleanup", configuration: RelayConfiguration(host: URL(string: "http://example.com")!), sessionMock: sessionMock)
 
         setupLogger()
         
@@ -200,41 +195,44 @@ class RelayTests: RelayTestCase {
         
         // manually specify a nonexistent taskID
         let nonexistentTaskID = -12
-        try! relay?.dbQueue?.inDatabase({ db in
-            let record = try LogRecord.fetchOne(db)
+        relay.write() { realm in
+            let record = realm.objects(LogRecord.self).first
             record?.uploadTaskID = nonexistentTaskID
-            try record?.save(db)
-            
-        })
-        relay?.cleanup()
-        try! relay?.dbQueue?.inDatabase({ db in
-            let record = try LogRecord.fetchOne(db)
+        }
+        
+        relay.cleanup()
+        relay.write() { realm in
+            let record = realm.objects(LogRecord.self).first
             XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
             exp.fulfill()
-        })
-        
-        waitForExpectations(timeout: 1, handler: nil)
+        }
+
+        waitForExpectations(timeout: 5, handler: nil)
     }
     
     func testHandleRelayUrlSessionEvents() {
-        relay = Relay(identifier:"testHandleRelayUrlSessionEvents",
+        let relay = Relay(identifier:"testHandleRelayUrlSessionEvents",
                       configuration: RelayConfiguration(host: URL(string: "http://doesntmatter.com")!))
         
-        XCTAssertNil(relay!.sessionCompletionHandler)
+        XCTAssertNil(relay.sessionCompletionHandler)
         
-        relay?.handleRelayUrlSessionEvents(identifier: relay!.identifier,
+        relay.handleRelayUrlSessionEvents(identifier: relay.identifier,
                                            completionHandler: { })
-        XCTAssertTrue(relay!.sessionCompletionHandler != nil)
+        XCTAssertTrue(relay.sessionCompletionHandler != nil)
     }
 
-    
-    private func createRelay(withIdentifier identifier: String, configuration: RelayConfiguration, sessionMock: URLSessionMock? = nil) {
-        relay = Relay(identifier:identifier,
+
+    // MARK: Helpers
+
+    private func createRelay(withIdentifier identifier: String, configuration: RelayConfiguration, sessionMock: URLSessionMock? = nil) -> Relay {
+        let relay = Relay(identifier:identifier,
                       configuration: configuration,
                       testSession:sessionMock)
+        self.relay = relay
         
         sessionMock?.delegate = relay
-        
         setupLogger()
+
+        return relay
     }
 }

@@ -7,8 +7,9 @@
 //
 
 import Foundation
-import GRDB
 import CocoaLumberjack
+import RealmSwift
+import Realm
 
 
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
@@ -34,7 +35,16 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     public var uploadRetries = 3
     
     /// Internal dbQueue, marked as internal for use when running tests.
-    var dbQueue: DatabaseQueue?
+    var realm: Realm {
+        let config = Realm.Configuration(fileURL: relayPath().appendingPathComponent(identifier + ".realm"), readOnly: false, schemaVersion: 1)
+        do {
+            return try Realm(configuration: config)
+        } catch {
+            #if DEBUG
+            fatalError("Error initializing Realm: \(error)")
+            #endif
+        }
+    }
     
     private var _configuration: RelayConfiguration
     
@@ -59,6 +69,28 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
 
     /// The active session to cut down on conditionals between testing and production.
     var urlSession: URLSessionProtocol?
+    
+    let writeQueue: OperationQueue = {
+        let opq = OperationQueue()
+        opq.qualityOfService = .utility
+        opq.maxConcurrentOperationCount = 1
+        
+        return opq
+    }()
+    
+    
+    public func write(_ code: @escaping (_ realm: Realm) -> Void) {
+        writeQueue.addOperation { [weak self] in
+            guard let realm = self?.realm else { return }
+            do {
+                try realm.write() {
+                    code(realm)
+                }
+            } catch {
+                print("error writing object: \(error)")
+            }
+        }
+    }
 
     /// Initializes a relay.
     ///
@@ -76,22 +108,6 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             fatalError("testSession can only be used when running unit tests.")
         }
         self._configuration = configuration
-        
-        do {
-            let dbQueue = try DatabaseQueue(path: try getRelayDirectory() + identifier + ".sqlite")
-            self.dbQueue = dbQueue
-            
-            try dbQueue.inDatabase { db in
-                guard try !db.tableExists(LogRecord.TableName) else { return }
-                
-                try Relay.makeTable(db: db)
-            }
-        } catch {
-            #if DEBUG
-                fatalError("SQL error during initialization: \(error)")
-            #endif
-        }
-
         super.init()
 
         if testSession != nil {
@@ -105,22 +121,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         
         cleanup()
     }
-    
-    private static func makeTable(db: Database) throws {
-            try db.create(table: LogRecord.TableName) { t in
-                t.column("uuid", .text).primaryKey()
-                t.column("message", .text)
-                t.column("flag", .integer).notNull()
-                t.column("level", .integer).notNull()
-                t.column("context", .text)
-                t.column("file", .text)
-                t.column("function", .text)
-                t.column("line", .integer)
-                t.column("date", .datetime)
-                t.column("upload_task_id", .integer)
-                t.column("upload_retries", .integer).notNull().defaults(to: 0)
-            }
-    }
+
 
     
     /// Call in `application(_:handleEventsForBackgroundURLSession:completionHandler:)` in order
@@ -142,33 +143,22 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
 
     /// Removes all logs from the internal database. Logs already passed to the system for uploading will not be cancelled.
     func reset() {
-        do {
-            try dbQueue?.inDatabase({ db in
-                try db.drop(table: LogRecord.TableName)
-                try Relay.makeTable(db: db)
-            })
-        } catch {
-            print("SQL error has occured when resetting the database: \(error)")
+        write() { realm in
+            realm.deleteAll()
         }
     }
     
     
     /// Uploads all logs to the server.
-    func flushLogs() {
-        do {
-            try dbQueue?.inDatabase({ db in
-                let logRecords = try LogRecord.filter(Column("upload_task_id") == nil).fetchAll(db)
-                for record in logRecords {
-                    do {
-                        uploadLogRecord(logRecord: record, db: db)
-                        try record.update(db)
-                    } catch {
-                        print(error)
-                    }
-                }
-            })
-        } catch {
-            print("SQL error when flushing logs: \(error)")
+    func flushLogs(_ completion: (() -> Void)? = nil) {
+        write() { [weak self] realm in
+            let logRecords = realm.objects(LogRecord.self).filter(NSPredicate(format: "_uploadTaskID == nil", argumentArray: nil))
+            for record in logRecords {
+                self?.uploadLogRecord(logRecord: record)
+            }
+            DispatchQueue.global(qos: .utility).async {
+                completion?()
+            }
         }
     }
     
@@ -177,9 +167,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///
     /// - Parameters:
     ///   - logRecord: record to be uploaded.
-    ///   - db: database instance.
     ///
-    private func uploadLogRecord(logRecord: LogRecord, db: Database) {
+    private func uploadLogRecord(logRecord: LogRecord) {
         do {
             let logUploadRequest: URLRequest = {
                 var request = URLRequest(url: (configuration.host))
@@ -200,7 +189,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             let task = urlSession?.uploadTask(with: logUploadRequest, fromFile: fileURL)
             
             logRecord.uploadTaskID = task?.taskIdentifier
-            try logRecord.update(db)
+            
             task?.resume()
         } catch {
             print("SQL error during upload process: \(error)")
@@ -236,15 +225,11 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
 
         for task in tasks {
             guard !checkTaskRequest(task: task) else { return }
-            do {
-                try self.dbQueue?.inDatabase({ [weak self] db in
-                    guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return }
-                    task.cancel()
-                    
-                    self?.uploadLogRecord(logRecord: record, db: db)
-                })
-            } catch {
-                print("SQL error recreating tasks: \(error)")
+            write() { [weak self] realm in
+                guard let record = realm.objects(LogRecord.self).filter("_uploadTaskID == %i", task.taskIdentifier).first else { return }
+                task.cancel()
+                
+                self?.uploadLogRecord(logRecord: record)
             }
         }
     }
@@ -255,34 +240,25 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         // Get our tasks from the session and ensure we dont have a log record associated with a nonexistent task.
         urlSession?.getAllTasks { [weak self] tasks in
             guard let this = self else { return }
-            do {
-                try this.dbQueue?.inTransaction { db in
-                    for record in try LogRecord.filter(Column("upload_task_id") != nil).fetchAll(db) {
-                        if tasks.filter({ record.uploadTaskID == $0.taskIdentifier }).isEmpty {
-                            record.uploadTaskID = nil
-                            try record.update(db)
-                             this.uploadLogRecord(logRecord: record, db: db)
-                        }
+            this.write() { realm in
+                let logRecords = realm.objects(LogRecord.self).filter(NSPredicate(format: "_uploadTaskID != nil", argumentArray: nil))
+                for record in logRecords {
+                    if tasks.filter({ record.uploadTaskID == $0.taskIdentifier }).isEmpty {
+                        record.uploadTaskID = nil
+                         this.uploadLogRecord(logRecord: record)
                     }
-                    
-                    return .commit
                 }
-            } catch {
-                print("SQL error cleaning up records: \(error)")
             }
+
             this.recreatePendingUploadTasksIfNeeded(tasks: tasks)
         }
     }
     
-    private func deleteLogRecord(_ record: LogRecord, db: Database) {
-        do {
-            try record.delete(db)
-            deleteTempFile(forRecord: record)
-            if let delegate = delegate as? RelayTestingDelegate {
-                delegate.relay(relay: self, didDeleteLogRecord: record)
-            }
-        } catch {
-            print("sql error when deleting a record: \(error)")
+    private func deleteLogRecord(_ record: LogRecord) {
+        deleteTempFile(forRecordUUID: record.uuid)
+        realm.delete(record)
+        if let delegate = delegate as? RelayTestingDelegate {
+            delegate.relay(relay: self, didDeleteLogRecord: record)
         }
     }
     
@@ -291,40 +267,39 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// - Parameter task: The completed task.
     ///
     private func processLogUploadTask(task: URLSessionUploadTask, error: Error?) {
-        do {
-            try dbQueue?.inDatabase { db in
-                guard let record = try LogRecord.filter(Column("upload_task_id") == task.taskIdentifier).fetchOne(db) else { return }
-                if let error = error as? NSError, error.code == NSURLErrorCancelled {
-                    deleteLogRecord(record, db: db)
-                    return
-                }
-                if let httpResponse = task.response as? HTTPURLResponse {
-                    if httpResponse.statusCode != 200 {
-                        record.uploadTaskID = nil
-                        record.uploadRetries += 1
-                        try record.update(db)
-                        // Should we toss it or try uploading it again?
-                        if record.uploadRetries < uploadRetries {
-                            uploadLogRecord(logRecord: record, db: db)
-                        } else {
-                            deleteLogRecord(record, db: db)
-                        }
-                        if let delegate  = delegate as? RelayTestingDelegate {
-                            delegate.relay(relay: self, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
-                        }
-                        delegate?.relay(relay: self, didFailToUploadLogMessage: record.logMessage, error: task.error, response: httpResponse)
+        write() { [weak self] realm in
+            guard let this = self, let record = realm.objects(LogRecord.self).filter("_uploadTaskID == %i", task.taskIdentifier).first else { return }
+            
+            if let error = error as NSError?, error.code == NSURLErrorCancelled {
+                this.deleteLogRecord(record)
+                return
+            }
+            if let httpResponse = task.response as? HTTPURLResponse {
+                if httpResponse.statusCode != 200 {
+                    record.uploadTaskID = nil
+                    record.uploadRetries += 1
+                    // Should we toss it or try uploading it again?
+                    if record.uploadRetries < this.uploadRetries {
+                        this.uploadLogRecord(logRecord: record)
                     } else {
-                        try record.delete(db)
-                        deleteTempFile(forRecord: record)
-                        if let delegate = delegate as? RelayTestingDelegate {
-                            delegate.relay(relay: self, didUploadLogRecord: record)
+                        if let delegate = this.delegate as? RelayTestingDelegate {
+                            delegate.relay(relay: this, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
                         }
-                        delegate?.relay(relay: self, didUploadLogMessage: record.logMessage)
+                        this.delegate?.relay(relay: this, didFailToUploadLogMessage: record.logMessage, error: task.error, response: httpResponse)
+
+                        this.deleteLogRecord(record)
                     }
+                } else {
+                    this.delegate?.relay(relay: this, didUploadLogMessage: record.logMessage)
+                    if let delegate = this.delegate as? RelayTestingDelegate {
+                        delegate.relay(relay: this, didUploadLogRecord: record)
+                    }
+
+                    // Explicitly deleting the log record here instead of the deleteLogRecord method so the delegate doesn't get called.
+                    this.deleteTempFile(forRecordUUID: record.uuid)
+                    realm.delete(record)
                 }
             }
-        } catch {
-            print("SQL error processing log record: \(error)")
         }
     }
     
@@ -332,8 +307,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// Deletes a temporary file representing a `LogRecord`
     ///
     /// - Parameter record
-    private func deleteTempFile(forRecord record: LogRecord) {
-        let fileURL = relayPath().appendingPathComponent("\(record.uuid)")
+    private func deleteTempFile(forRecordUUID uuid: String) {
+        let fileURL = relayPath().appendingPathComponent("\(uuid)")
         do {
             try FileManager.default.removeItem(at: fileURL)
         } catch {
@@ -352,24 +327,23 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     // MARK: DDAbstractLogger Methods
     
-    override public func log(message logMessage: DDLogMessage!) {
+    override public func log(message logMessage: DDLogMessage) {
         // Generate a LogRecord from a LogMessage
-        let logRecord = LogRecord(logMessage: logMessage, loggerIdentifier: identifier)
-        do {
-            try dbQueue?.inDatabase({ [weak self] db in
-                let logRecordCount = try LogRecord.fetchCount(db)
-                if logRecordCount >= (self?.maxNumberOfLogs)!,
-                    let oldestLogRecord = try LogRecord.fetchOne(db, "SELECT * FROM log_messages ORDER BY date") {
-                    self?.deleteLogRecord(oldestLogRecord, db: db)
+        write { [weak self] realm in
+            guard let this = self else { return }
+            // Save it
+            let record = LogRecord(logMessage: logMessage, loggerIdentifier: this.identifier)
+            realm.add(record)
+            let logRecordCount = realm.objects(LogRecord.self).count
+            if logRecordCount > this.maxNumberOfLogs,
+                let oldestLogRecord = realm.objects(LogRecord.self).sorted(byKeyPath: "_date", ascending: true).first {
+                this.deleteLogRecord(oldestLogRecord)
+            }
+            this.flushLogs() {
+                if let delegate = this.delegate as? RelayTestingDelegate {
+                    delegate.relayDidFinishFlush(relay: this)
                 }
-                try logRecord.save(db)
-                DispatchQueue.global(qos: DispatchQoS.QoSClass.default).async {
-                    guard let this = self else { return }
-                    this.flushLogs()
-                }
-            })
-        } catch {
-            print("SQL error saving log record to the database: \(error)")
+            }
         }
     }
 }

@@ -15,9 +15,14 @@ import CocoaLumberjackSwift
 class RelayTestCase: XCTestCase, RelayTestingDelegate {
     
     var relay: Relay?
+
     var successBlock: ((_ record: LogRecord) -> Void)?
+
     var recordDeletionBlock: ((_ record: LogRecord) -> Void)?
+
     var failureBlock: ((_ record: LogRecord, _ error: Error?,_ response: HTTPURLResponse?) -> Void)?
+    
+    var finishedFlushingBlock: (() -> Void)?
     
 
     override class func setUp() {
@@ -29,10 +34,14 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
         super.setUp()
         
         DDLog.removeAllLoggers()
-        DDLog.add(relay)
+        if let relay = relay {
+            DDLog.add(relay)
+        }
         
         successBlock = nil
         failureBlock = nil
+        finishedFlushingBlock = nil
+        recordDeletionBlock = nil
     }
 
     
@@ -47,15 +56,18 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
 
     func setupLogger() {
         DDLog.removeAllLoggers()
-        DDLog.add(relay)
+        if let relay = relay {
+            DDLog.add(relay)
+        }
         relay?.delegate = self
     }
     
 
     //MARK: RelayTestingDelegate methods
     
-    public func relay(relay: Relay, didUploadLogMessage message: DDLogMessage) {
-        // unused.
+
+    func relayDidFinishFlush(relay: Relay) {
+        finishedFlushingBlock?()
     }
     
 
@@ -71,6 +83,10 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
     
     func relay(relay: Relay, didFailToUploadLogRecord record: LogRecord, error: Error?, response: HTTPURLResponse?) {
         failureBlock?(record, error, response)
+    }
+    
+    public func relay(relay: Relay, didUploadLogMessage message: DDLogMessage) {
+        // unused.
     }
 
     
