@@ -13,9 +13,8 @@ import CocoaLumberjackSwift
 @testable import Relay
 
 class RelayTestCase: XCTestCase, RelayTestingDelegate {
-    
-    var relay: Relay?
 
+    /// All test blocks below are niled out after each call to prevent multiple calls to exception.fulfill()
     var successBlock: ((_ record: LogRecord) -> Void)?
 
     var recordDeletionBlock: ((_ record: LogRecord) -> Void)?
@@ -34,9 +33,6 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
         super.setUp()
         
         DDLog.removeAllLoggers()
-        if let relay = relay {
-            DDLog.add(relay)
-        }
         
         successBlock = nil
         failureBlock = nil
@@ -54,12 +50,10 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
     }
     
 
-    func setupLogger() {
-        DDLog.removeAllLoggers()
-        if let relay = relay {
-            DDLog.add(relay)
-        }
-        relay?.delegate = self
+    func setupLogger(_ relay: Relay) {
+        DDLog.add(relay)
+
+        relay.delegate = self
     }
     
 
@@ -68,21 +62,25 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
 
     func relayDidFinishFlush(relay: Relay) {
         finishedFlushingBlock?()
+        finishedFlushingBlock = nil
     }
     
 
     func relay(relay: Relay, didUploadLogRecord record: LogRecord) {
         successBlock?(record)
+        successBlock = nil
     }
 
     
     func relay(relay: Relay, didDeleteLogRecord record: LogRecord) {
         recordDeletionBlock?(record)
+        recordDeletionBlock = nil
     }
     
     
     func relay(relay: Relay, didFailToUploadLogRecord record: LogRecord, error: Error?, response: HTTPURLResponse?) {
         failureBlock?(record, error, response)
+        failureBlock = nil
     }
     
     public func relay(relay: Relay, didUploadLogMessage message: DDLogMessage) {
