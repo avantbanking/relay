@@ -228,7 +228,7 @@ class RelayTests: RelayTestCase {
                       testSession:sessionMock)
         
         sessionMock?.delegate = relay
-        setupLogger(relay)
+        setupRelay(relay)
 
         return relay
     }

@@ -50,7 +50,7 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
     }
     
 
-    func setupLogger(_ relay: Relay) {
+    func setupRelay(_ relay: Relay) {
         DDLog.add(relay)
 
         relay.delegate = self

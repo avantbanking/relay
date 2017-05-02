@@ -1,5 +1,5 @@
 # Relay: A remote logger for [CocoaLumberjack](https://github.com/CocoaLumberjack/CocoaLumberjack).
-![Platforms](https://img.shields.io/badge/platforms-ios%20%7C%20osx%20%7C%20watchos-lightgrey.svg)
+![Platforms](https://img.shields.io/badge/platforms-ios%20-lightgrey.svg)
 ![Languages](https://img.shields.io/badge/languages-swift%203-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)
 [![Build Status](https://travis-ci.org/Zerofinancial/relay.svg?branch=master)](https://travis-ci.org/Zerofinancial/relay)
@@ -21,7 +21,7 @@ is at the mercy of the app review team, but what about nonfatals that prevent or
 ### Dependencies
 
 - Given this is a logger for CocoaLumberjack, CocaLumberjack is required.
-- [GRDB](https://github.com/groue/GRDB.swift) is used to maintain the log records created from each `DDLogMessage` passsed from CocoaLumberjack.
+- [Realm](https://github.com/realm/realm-cocoa) is used to maintain the log records created from each `DDLogMessage` passsed from CocoaLumberjack.
   Each created `Relay` maintains it's own SQLite database located in the Documents folder on iOS, and Application Support on macOS.
 
 ### Carthage
@@ -34,7 +34,7 @@ github zerofinancial.com/relay ~> 1.0
 Be sure to add `Relay` and `GRDB` to your Carthage run script.
 
 ### Manually
-Download the latest framework binary off the releases page, and [GRDB](https://github.com/groue/GRDB.swift). Add them to your project, and you're ready to go.
+Download the latest framework binary off the releases page, and [Realm](https://github.com/realm/realm-cocoa). Add them to your project, set the proper framework search paths, and you're ready to go.
 
 ## Configuration
 Take a look at the [documentation](https://zerofinancial.github.io/relay/) for all configurable options.
