@@ -4,16 +4,17 @@ language: objective-c
 osx_image: xcode8.3
 branches:
   except:
-    - gh-pages
+  - gh-pages
 before_install:
-- gem install slather jazzy fastlane -N
-script: bash deploy.sh
+- gem install slather jazzy fastlane carthage_cache -N
+script: bash build.sh
 notifications:
   slack:
     secure: REmY4XnYQ5QDu49J3co/VjHQ92DccFPVo9vBobWvcRzqZ03ph0v2zcqIDrVlwc1as1eZ+FAXhJ2tCrEbTax14er1DTXyZPT3Ger1Vmdn2E543D/LwCIaokzPc5quWB8pRy2C6TIzOUAarQ59BkJkGe6yP5VSk3TmpkmRleFT3+oMu+CqTqTuUcsXPRsGAlNMnN24NMhVHPBMXOFTZAEzgDKUBxYhUZTFk//dBVUgXZOOo8dSw1dKJnu85noUGwj14rtBaYa5e1u6cAulh/cDaU8K6x9WnylmU7Jg3kaTR5fYpjxuD8IB0DthIURm3MyyoyS+e0RJxoNxl4NE3aN+b9c2nXyQgiz+me8k80Ah1gMh6GAmUgHsPMPnj9avEI15S22t4pUI9I43TEbzGZ6N0+B34jlVWCImioYCTLsrPh0IA8H4xvrlqla58f4nukd1N4gw1vR78N8Repx4PfRb/LfSP0hYI0yoAjSpmzaERKsMPI6bbYuLxUbidIVTLuFcrJfwgs2uTsEeAQZLStwt7S9v1nKKP+buSbi8B5iD5EcEsNao4nqIIT95tDFHZ6zvbrlVT/oiQPdEk1dbxYIyjLe3WbU9bNO59LgWX5Ap96yOk/l5lNJBpdPL2xCm1OR1umHotr84lowQFE4hl8z2EMy23BOIdgkErqpcI5vMpyw=
-after_success: 
+after_success:
 - slather
 env:
   global:
-      - ENCRYPTION_LABEL: "6ae9c2fab656"
-      - COMMIT_AUTHOR_EMAIL: "robots@zerofinancial.com"
+  - ENCRYPTION_LABEL: 6ae9c2fab656
+  - COMMIT_AUTHOR_EMAIL: robots@zerofinancial.com
+  - secure: Y0a8l8xwblx9snkWF19IlnvB2wZc9iSvpjsi9flQaS8oHtyCxGjPKh4Qc9waQJgHnLc9OxmFQCnyVR6QU2m/T6MVBQBjFw8q3MFfn23gnIIgzwGb1Q1nMu9OayrQi3NcNq1qiEbWsUlB8dRY6KaZvVmWDFadZlAkXfwnvMHu1zhwPi5nNslDQLu5lZ5K2nCXL7oRh+SxTRAf8emZI0i/pjNE43FgJrhjYxO9GS1QCAyA+ou7+a3PiA2FAgyr175rsrGxJv9hPiVbvJIJ+oHDciiB6c23gEhP1vLaq5ZQUMpVNPCDM13V4xxV6BM8Vs+aa5UC6izgtODR11ex3sC6Lzcxp7Q7P5A4LbVGoexZgM0Mr0rNyZBDkLDcEpnFUk6sB63A1qlTClgupsEFgMrB10oJaxcI/ovPvI1TjHx5NDCci5K0Odn0TuNDGkA7kHpxgUom3xzWXEy4fSAxHtaB9aHtL2Hbq/xlDXcHqxpFtabjUBizvI05/XmKBhilTdnD1jtU3qkcLrPzQbw7/buRyO74Yv5vv2hlKzpJSPt1sc3VYJkgmxGNwBPwsBBW++/+WYf+URfjnsUhg/fJU6xCJ1j12dxMOyDX+416Kl10lBybdj78VJ8r4t/UvDtuy3y0MYKVH21+SKmuI6kZMcaZEAA7HlevKFUzBy2/4HoDE/g=

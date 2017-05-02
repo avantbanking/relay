@@ -18,6 +18,7 @@
 		4553647B1E0A07A000BF1699 /* Relay.h in Headers */ = {isa = PBXBuildFile; fileRef = 4553646D1E0A07A000BF1699 /* Relay.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		455364871E0A098D00BF1699 /* Relay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455364861E0A098D00BF1699 /* Relay.swift */; };
 		4571F4181E25BF5B008D7F78 /* TestUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4571F4171E25BF5B008D7F78 /* TestUtilities.swift */; };
+		45B205A01EB83248001ABC33 /* FrameworkUtilitiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B2059F1EB83248001ABC33 /* FrameworkUtilitiesTests.swift */; };
 		45D8457E1E236DC30017FD5C /* LogRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45D8457D1E236DC30017FD5C /* LogRecord.swift */; };
 /* End PBXBuildFile section */
 
@@ -54,6 +55,7 @@
 		4553648B1E0A0B2700BF1699 /* CocoaLumberjackSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaLumberjackSwift.framework; path = Carthage/Build/iOS/CocoaLumberjackSwift.framework; sourceTree = "<group>"; };
 		455364901E0A0F2400BF1699 /* CocoaLumberjack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaLumberjack.framework; path = Carthage/Build/iOS/CocoaLumberjack.framework; sourceTree = "<group>"; };
 		4571F4171E25BF5B008D7F78 /* TestUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtilities.swift; sourceTree = "<group>"; };
+		45B2059F1EB83248001ABC33 /* FrameworkUtilitiesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FrameworkUtilitiesTests.swift; sourceTree = "<group>"; };
 		45B3DCA81EB3E2E00051F46A /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = Carthage/Build/iOS/Realm.framework; sourceTree = "<group>"; };
 		45B3DCA91EB3E2E00051F46A /* RealmSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealmSwift.framework; path = Carthage/Build/iOS/RealmSwift.framework; sourceTree = "<group>"; };
 		45D8457D1E236DC30017FD5C /* LogRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogRecord.swift; sourceTree = "<group>"; };
@@ -116,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				455364781E0A07A000BF1699 /* RelayTests.swift */,
+				45B2059F1EB83248001ABC33 /* FrameworkUtilitiesTests.swift */,
 				454AF7CD1E39B04600640050 /* RelayConfigurationTests.swift */,
 				454AF7CF1E39B0C100640050 /* RelayTestCase.swift */,
 				4553647A1E0A07A000BF1699 /* Info.plist */,
@@ -276,6 +279,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				454AF7D01E39B0C100640050 /* RelayTestCase.swift in Sources */,
+				45B205A01EB83248001ABC33 /* FrameworkUtilitiesTests.swift in Sources */,
 				454AF7CE1E39B04600640050 /* RelayConfigurationTests.swift in Sources */,
 				455364791E0A07A000BF1699 /* RelayTests.swift in Sources */,
 			);
