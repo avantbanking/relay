@@ -39,7 +39,11 @@ class RelayTests: RelayTestCase {
     
 
     func testDiskQuota() {
-        let relay = createRelay(withIdentifier: "testDiskQuota")
+        let sessionMock = URLSessionMock(response: HTTPURLResponse(url: URL(string: "http://example.com")!,
+                                                                   statusCode: 200, httpVersion: nil, headerFields: nil))
+        sessionMock.taskResponseTime = 2 // don't have the logs immediately upload
+
+        let relay = createRelay(withIdentifier: "testDiskQuota", sessionMock: sessionMock)
         relay.maxNumberOfLogs = 10
         
         let exp = expectation(description: "The database should have at most the value of the `maxNumberOfLogs` property.")
@@ -156,7 +160,7 @@ class RelayTests: RelayTestCase {
         let exp = expectation(description: "No logs should be present after a reset.")
 
         let sessionMock = URLSessionMock()
-        sessionMock.taskResponseTime = 10 // Make it long enough so the network task is still present when we switch configs
+        sessionMock.taskResponseTime = 2 // Make it long enough so the network task is still present when we switch configs
         
         let relay = createRelay(withIdentifier: "testReset", sessionMock: sessionMock)
         
@@ -182,26 +186,26 @@ class RelayTests: RelayTestCase {
         sessionMock.taskResponseTime = 2 // We don't want the log upload immediately.
         
         let relay = createRelay(withIdentifier: "testCleanup",
-                                configuration: RelayConfiguration(host: URL(string: "http://example.com")!),
                                 sessionMock: sessionMock)
         
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
         
-        // manually specify a nonexistent taskID
-        let nonexistentTaskID = -12
-        relay.write() { realm in
-            let record = realm.objects(LogRecord.self).first
-            record?.uploadTaskID = nonexistentTaskID
+        finishedFlushingBlock = {
+            // manually specify a nonexistent taskID
+            let nonexistentTaskID = -12
+            relay.write() { realm in
+                let record = realm.objects(LogRecord.self).first
+                record?.uploadTaskID = nonexistentTaskID
+            }
+            
+            relay.cleanup()
+            relay.write() { realm in
+                let record = realm.objects(LogRecord.self).first
+                XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
+                exp.fulfill()
+            }
         }
-        
-        relay.cleanup()
-        relay.write() { realm in
-            let record = realm.objects(LogRecord.self).first
-            XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
-            exp.fulfill()
-        }
-
         waitForExpectations(timeout: 5, handler: nil)
     }
     
