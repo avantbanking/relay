@@ -1,0 +1,5 @@
+---
+:bucket_name: zero-carthage-cache
+:prune_on_publish: true
+:aws_s3_client_options: 
+   :region: us-west-2

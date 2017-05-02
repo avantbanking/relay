@@ -6,6 +6,8 @@ branches:
   except:
   - gh-pages
 before_install:
+- openssl aes-256-cbc -K $encrypted_6ae9c2fab656_key -iv $encrypted_6ae9c2fab656_iv
+  -in deploy_key.enc -out deploy_key -d
 - gem install slather jazzy fastlane carthage_cache -N
 script: bash build.sh
 notifications:

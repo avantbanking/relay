@@ -166,12 +166,11 @@ class RelayTests: RelayTestCase {
         
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
+        
         relay.reset() {
-            relay.write() { realm in
-                let count = relay.realm.objects(LogRecord.self).count
-                XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
-                exp.fulfill()
-            }
+            let count = relay.realm.objects(LogRecord.self).count
+            XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
+            exp.fulfill()
         }
 
         waitForExpectations(timeout: 5, handler: nil)

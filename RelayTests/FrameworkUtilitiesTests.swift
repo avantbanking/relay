@@ -16,12 +16,10 @@ class FrameworkUtilitiesTests: XCTestCase {
 
     func testGetRelayDirectory() {
         do { try FileManager.default.removeItem(at: relayPath()) } catch {}
-        
         _ = try! getRelayDirectory()
         
-        let fileManager = FileManager.default
         var isDir : ObjCBool = false
-        if fileManager.fileExists(atPath: relayPath().path, isDirectory:&isDir) {
+        if FileManager.default.fileExists(atPath: relayPath().path, isDirectory:&isDir) {
             if !isDir.boolValue {
                 XCTFail("exists, but not a directory")
             }

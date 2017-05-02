@@ -98,24 +98,7 @@ public class LogRecord : Object {
     
     private let _uploadTaskID = RealmOptional<Int>()
 
-    
 
-//    required public init(row: Row) {
-//        uuid = row.value(named: "uuid")
-//        message = row.value(named: "message")
-//        flag = row.value(named: "flag")
-//        level = row.value(named: "level")
-//        line = row.value(named: "line")
-//        file = row.value(named: "file")
-//        context = row.value(named: "context")
-//        function = row.value(named: "function")
-//        date = row.value(named: "date")
-//        uploadTaskID = row.value(named: "upload_task_id")
-//        
-//        super.init(row: row)
-//        uploadRetries = row.value(named: "upload_retries")
-//    }
-    
     convenience init(logMessage: DDLogMessage, loggerIdentifier: String) {
         self.init()
 
