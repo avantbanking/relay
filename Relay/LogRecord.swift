@@ -13,61 +13,61 @@ import CocoaLumberjackSwift
 
 public class LogRecord : Object {
     
-    public var uuid: String {
+    var uuid: String {
         guard let _uuid = _uuid else { fatalError() }
         
         return _uuid
     }
     
-    public var message: String {
+    var message: String {
         guard let _message = _message else { fatalError() }
         
         return _message
     }
 
-    public var flag: Int {
+    var flag: Int {
         guard let _flag = _flag.value else { fatalError() }
         
         return _flag
     }
     
-    public var level: Int {
+    var level: Int {
         guard let _level = _level.value else { fatalError() }
         
         return _level
     }
     
-    public var line: Int {
+    var line: Int {
         guard let _line = _line.value else { fatalError() }
         
         return _line
     }
     
-    public var file: String {
+    var file: String {
         guard let _file = _file else { fatalError() }
         
         return _file
     }
     
-    public var context: Int {
+    var context: Int {
         guard let _context = _context.value else { fatalError() }
         
         return _context
     }
     
-    public var function: String {
+    var function: String {
         guard let _function = _function else { fatalError() }
         
         return _function
     }
     
-    public var date: Date {
+    var date: Date {
         guard let _date = _date else { fatalError() }
         
         return _date
     }
     
-    public var uploadTaskID: Int? {
+    var uploadTaskID: Int? {
         get {
             return _uploadTaskID.value
         }
@@ -76,7 +76,7 @@ public class LogRecord : Object {
         }
     }
     
-    public dynamic var uploadRetries = 0
+    dynamic var uploadRetries = 0
 
     private dynamic var _uuid: String?
     

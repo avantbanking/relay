@@ -12,6 +12,7 @@ import RealmSwift
 import Realm
 
 
+/// Once you initialize a Relay, add it to Cocoalumberjack with DDLog.add(relayInstance)
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     private var _identifier: String

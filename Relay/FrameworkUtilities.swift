@@ -18,11 +18,7 @@ private func createRelayDirectoryIfNeeded() throws {
 
 
 func getRelayDirectory() throws -> String {
-    do {
-        try createRelayDirectoryIfNeeded()
-    } catch {
-       // According to the documentation, checks to see if the operation will succeed first are discouraged.
-    }
+    try createRelayDirectoryIfNeeded()
 
     return relayPath().absoluteString
 }
