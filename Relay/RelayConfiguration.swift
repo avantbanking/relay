@@ -15,20 +15,23 @@ public struct RelayConfiguration: Equatable {
     public let host: URL
 
     public var httpHeaders: [String: String]
+    
+    public var successfulHTTPStatusCodes = [200]
 
     
     /// Generates a RelayConfiguration object
     ///
     /// - Parameters:
     ///   - host
-    ///   - additionalHttpHeaders: If nil or if Content-Type or Accept are not defined,
-    ///                            they will default to application/json
-    public init(host: URL, additionalHttpHeaders: [String: String]? = nil) {
+    ///   - httpHeaders: If nil or if Content-Type or Accept are not defined,
+    ///     they will default to application/json
+    ///   - successfulHTTPStatusCodes: HTTP codes indicating a successful transmission. Defaults to 200.
+    public init(host: URL, httpHeaders: [String: String]? = nil, successfulHTTPStatusCodes: [Int]? = nil) {
         self.host = host
         
         var headers: [String: String] = [:]
-        if let additionalHeaders = additionalHttpHeaders {
-            headers = additionalHeaders
+        if let httpHeaders = httpHeaders {
+            headers = httpHeaders
             var contentTypeHeader = headers["Content-Type"]
             var acceptHeader = headers["Accept"]
 
@@ -44,6 +47,10 @@ public struct RelayConfiguration: Equatable {
             headers = ["Content-Type": "application/json", "Accept": "application/json"]
         }
         self.httpHeaders = headers
+        
+        if let successfulHTTPStatusCodes = successfulHTTPStatusCodes {
+            self.successfulHTTPStatusCodes = successfulHTTPStatusCodes
+        }
     }
     
     // MARK: Equatable Protocol Methods

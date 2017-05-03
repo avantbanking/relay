@@ -12,7 +12,6 @@ import RealmSwift
 import Realm
 
 
-/// Once you initialize a Relay, add it to Cocoalumberjack with DDLog.add(relayInstance)
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     private var _identifier: String
@@ -277,7 +276,16 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 return
             }
             if let httpResponse = task.response as? HTTPURLResponse {
-                if httpResponse.statusCode != 200 {
+                if this.configuration.successfulHTTPStatusCodes.contains(httpResponse.statusCode) {
+                    this.delegate?.relay(relay: this, didUploadLogMessage: record.logMessage)
+                    if let delegate = this.delegate as? RelayTestingDelegate {
+                        delegate.relay(relay: this, didUploadLogRecord: record)
+                    }
+                    
+                    // Explicitly deleting the log record here instead of the deleteLogRecord method so the delegate doesn't get called.
+                    this.deleteTempFile(forRecordUUID: record.uuid)
+                    realm.delete(record)
+                } else {
                     record.uploadTaskID = nil
                     record.uploadRetries += 1
                     // Should we toss it or try uploading it again?
@@ -288,18 +296,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                             delegate.relay(relay: this, didFailToUploadLogRecord: record, error: task.error, response: httpResponse)
                         }
                         this.delegate?.relay(relay: this, didFailToUploadLogMessage: record.logMessage, error: task.error, response: httpResponse)
-
+                        
                         this.deleteLogRecord(record)
                     }
-                } else {
-                    this.delegate?.relay(relay: this, didUploadLogMessage: record.logMessage)
-                    if let delegate = this.delegate as? RelayTestingDelegate {
-                        delegate.relay(relay: this, didUploadLogRecord: record)
-                    }
-
-                    // Explicitly deleting the log record here instead of the deleteLogRecord method so the delegate doesn't get called.
-                    this.deleteTempFile(forRecordUUID: record.uuid)
-                    realm.delete(record)
                 }
             }
         }

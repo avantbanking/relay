@@ -17,12 +17,15 @@ class RelayConfigurationTests: RelayTestCase {
     func testHeaderUpdate() {
         let exp = expectation(description: "Should remake requests when the configuration changes.")
         
+        let sessionMock = URLSessionMock()
+        sessionMock.taskResponseTime = 10 // Make it long enough so the network task is still present when we switch configs
+
         let host = URL(string: "http://testHeaderUpdate.com")!
-        let config = RelayConfiguration(host: host, additionalHttpHeaders: ["Hello": "You."])
-        let relay = createTestLogs(withRelayIdentifier: "testRemoteConfigurationUpdate", config: config)
+        let config = RelayConfiguration(host: host, httpHeaders: ["Hello": "You."])
+        let relay = createTestLogs(withRelayIdentifier: "testRemoteConfigurationUpdate", config: config, sessionMock: sessionMock)
         
         let newConfigHeaders = ["Goodbye": "See you later."]
-        let newConfig = RelayConfiguration(host: host, additionalHttpHeaders: newConfigHeaders)
+        let newConfig = RelayConfiguration(host: host, httpHeaders: newConfigHeaders)
         relay.configuration = newConfig
         
         finishedFlushingBlock = {
@@ -49,8 +52,11 @@ class RelayConfigurationTests: RelayTestCase {
     func testHostChange() {
         let exp = expectation(description: "Should remake requests when the host changes.")
         
+        let sessionMock = URLSessionMock()
+        sessionMock.taskResponseTime = 10 // Make it long enough so the network task is still present when we switch configs
+    
         let config = RelayConfiguration(host: URL(string: "http://host.com")!)
-        let relay = createTestLogs(withRelayIdentifier: "testHeaderHostChange", config: config)
+        let relay = createTestLogs(withRelayIdentifier: "testHeaderHostChange", config: config, sessionMock: sessionMock)
         
         let newConfig = RelayConfiguration(host: URL(string: "http://newhost.com")!)
         relay.configuration = newConfig
@@ -76,15 +82,38 @@ class RelayConfigurationTests: RelayTestCase {
     }
     
     
-    private func createTestLogs(withRelayIdentifier identifier: String, config: RelayConfiguration) -> Relay {
-        let sessionMock = URLSessionMock()
-        sessionMock.taskResponseTime = 10 // Make it long enough so the network task is still present when we switch configs
+    func testSuccessfulStatusCodeChange() {
+        let exp = expectation(description: "Should remake requests when the successful status codes change.")
+        
+        let host = URL(string: "http://host.com")!
+        let response = HTTPURLResponse(url: host, statusCode: 202, httpVersion: nil, headerFields: nil)
+        let error = NSError(domain: "loggerTest", code: 5, userInfo: nil)
+        let sessionMock = URLSessionMock(data: nil, response: response, error: error)
+        
+        _ = createTestLogs(withRelayIdentifier: "testSuccessfulStatusCodeChange",
+                           config: RelayConfiguration(host: host, successfulHTTPStatusCodes: [202]),
+                           sessionMock: sessionMock)
+
+        successBlock = { _ in
+            exp.fulfill()
+        }
+        failureBlock = { _ in
+            XCTFail("Expected a successful upload, got a failure instead.")
+        }
+        
+        waitForExpectations(timeout: 5, handler: nil)
+    }
+    
+
+    // MARK: Helpers
+
+    private func createTestLogs(withRelayIdentifier identifier: String, config: RelayConfiguration, sessionMock: URLSessionMock? = nil) -> Relay {
         
         let relay = Relay(identifier:identifier,
                           configuration: config,
                           testSession:sessionMock)
         
-        sessionMock.delegate = relay
+        sessionMock?.delegate = relay
         setupRelay(relay)
         
         DDLogInfo("Testing one two...")
