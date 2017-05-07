@@ -21,23 +21,15 @@ class RelayTests: RelayTestCase {
     func testLogger() {
         let relay = createRelay(withIdentifier: "testLogger")
         
-        let exp = expectation(description: "A log should be present in the log database.")
-
         DDLogInfo("hello")
         DDLog.flushLog()
-
-        finishedFlushingBlock = {
-            relay.write() { realm in
-                let count = relay.realm.objects(LogRecord.self).count
-                XCTAssert(count == 1, "1 log entry should be present, got \(count) instead.")
-                exp.fulfill()
-            }
-        }
+        relay.completionQueue.waitUntilAllOperationsAreFinished()
         
-        waitForExpectations(timeout: 5, handler: nil)
+        let count = relay.realm.objects(LogRecord.self).count
+        XCTAssert(count == 1, "1 log entry should be present, got \(count) instead.")
     }
     
-
+    // "The database should have at most the value of the `maxNumberOfLogs` property."
     func testDiskQuota() {
         let sessionMock = URLSessionMock(response: HTTPURLResponse(url: URL(string: "http://example.com")!,
                                                                    statusCode: 200, httpVersion: nil, headerFields: nil))
@@ -45,26 +37,18 @@ class RelayTests: RelayTestCase {
 
         let relay = createRelay(withIdentifier: "testDiskQuota", sessionMock: sessionMock)
         relay.maxNumberOfLogs = 10
-        
-        let exp = expectation(description: "The database should have at most the value of the `maxNumberOfLogs` property.")
-        
+
         for _ in 0...relay.maxNumberOfLogs + 1 {
             DDLogInfo("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789")
         }
         DDLog.flushLog()
+        relay.completionQueue.waitUntilAllOperationsAreFinished()
 
-        finishedFlushingBlock = {
-            relay.write() { realm in
-                let count = relay.realm.objects(LogRecord.self).count
-                XCTAssert(count == relay.maxNumberOfLogs, "\(relay.maxNumberOfLogs) log entries should be present, got \(count) instead.")
-                exp.fulfill()
-            }
-        }
-        
-        waitForExpectations(timeout: 5, handler: nil)
+        let count = relay.realm.objects(LogRecord.self).count
+        XCTAssert(count == relay.maxNumberOfLogs, "\(relay.maxNumberOfLogs) log entries should be present, got \(count) instead.")
     }
     
-
+    // No network errors should occur when flushing logs.
     func testSuccessfulLogFlush() {
         let sessionMock = URLSessionMock(response: HTTPURLResponse(url: URL(string: "http://example.com")!, statusCode: 200, httpVersion: nil, headerFields: nil))
 
@@ -74,6 +58,7 @@ class RelayTests: RelayTestCase {
         
         DDLogInfo("This should successfully upload")
         DDLog.flushLog()
+        relay.completionQueue.waitUntilAllOperationsAreFinished()
         
         let exp = expectation(description: "No network errors should occur when flushing logs.")
         
@@ -97,7 +82,7 @@ class RelayTests: RelayTestCase {
         DDLogInfo("This should fail to upload")
         DDLog.flushLog()
         
-        let exp = expectation(description: "A bad response should have occured when uploading this log.")
+        let exp = expectation(description: "")
         
         failureBlock = { [weak self] record, error, response in
             if let statusCode = response?.statusCode {
@@ -125,11 +110,11 @@ class RelayTests: RelayTestCase {
 
         failureBlock = { record in
             // the database should be empty
-            relay.write() { realm in
+            relay.write({ realm in
                 let count = relay.realm.objects(LogRecord.self).count
                 XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
                 exp.fulfill()
-            }
+            })
         }
         relay.flushLogs()
         
@@ -165,8 +150,10 @@ class RelayTests: RelayTestCase {
         let relay = createRelay(withIdentifier: "testReset", sessionMock: sessionMock)
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
-        
+        relay.completionQueue.waitUntilAllOperationsAreFinished()
+
         relay.reset() {
+            relay.realm.refresh()
             let count = relay.realm.objects(LogRecord.self).count
             XCTAssert(count == 0, "No log entries should be present, got \(count) instead.")
             exp.fulfill()
@@ -188,21 +175,20 @@ class RelayTests: RelayTestCase {
         
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
+        relay.completionQueue.waitUntilAllOperationsAreFinished()
         
-        finishedFlushingBlock = {
-            // manually specify a nonexistent taskID
-            let nonexistentTaskID = -12
-            relay.write() { realm in
-                let record = realm.objects(LogRecord.self).first
-                record?.uploadTaskID = nonexistentTaskID
-            }
-            
-            relay.cleanup()
-            relay.write() { realm in
-                let record = realm.objects(LogRecord.self).first
-                XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
-                exp.fulfill()
-            }
+        // manually specify a nonexistent taskID
+        let nonexistentTaskID = -12
+        relay.write({ realm in
+            let record = realm.objects(LogRecord.self).first
+            record?.uploadTaskID = nonexistentTaskID
+        })
+        
+        relay.cleanup() {
+            relay.realm.refresh()
+            let record = relay.realm.objects(LogRecord.self).first
+            XCTAssertTrue(record?.uploadTaskID != nonexistentTaskID)
+            exp.fulfill()
         }
         waitForExpectations(timeout: 5, handler: nil)
     }
