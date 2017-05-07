@@ -27,23 +27,20 @@ class RelayConfigurationTests: RelayTestCase {
         let newConfigHeaders = ["Goodbye": "See you later."]
         let newConfig = RelayConfiguration(host: host, httpHeaders: newConfigHeaders)
         relay.configuration = newConfig
+        relay.completionQueue.waitUntilAllOperationsAreFinished()
         
-        finishedFlushingBlock = {
-            relay.write() { realm in
-                // Grab the network task and verify it has the information from configTwo
-                relay.urlSession?.getAllTasks(completionHandler: { tasks in
-                    guard let task = tasks.last,
-                        let currentRequest = task.currentRequest,
-                        let requestHeaders = currentRequest.allHTTPHeaderFields,
-                        let configTwoKey = newConfigHeaders.keys.first else {
-                            XCTFail("Missing required objects!")
-                            return
-                    }
-                    XCTAssertEqual(requestHeaders[configTwoKey], newConfigHeaders[configTwoKey])
-                    exp.fulfill()
-                })
+        // Grab the network task and verify it has the information from configTwo
+        relay.urlSession?.getAllTasks(completionHandler: { tasks in
+            guard let task = tasks.last,
+                let currentRequest = task.currentRequest,
+                let requestHeaders = currentRequest.allHTTPHeaderFields,
+                let configTwoKey = newConfigHeaders.keys.first else {
+                    XCTFail("Missing required objects!")
+                    return
             }
-        }
+            XCTAssertEqual(requestHeaders[configTwoKey], newConfigHeaders[configTwoKey])
+            exp.fulfill()
+        })
         
         waitForExpectations(timeout: 5, handler: nil)
     }
@@ -60,23 +57,20 @@ class RelayConfigurationTests: RelayTestCase {
         
         let newConfig = RelayConfiguration(host: URL(string: "http://newhost.com")!)
         relay.configuration = newConfig
+        relay.completionQueue.waitUntilAllOperationsAreFinished()
         
-        finishedFlushingBlock = {
-            relay.write() { realm in
-                // Grab the network task and verify it has the information from newConfig
-                relay.urlSession?.getAllTasks(completionHandler: { tasks in
-                    guard let record = realm.objects(LogRecord.self).first,
-                        let task = tasks.filter({ $0.taskIdentifier == record.uploadTaskID }).first,
-                        let currentRequest = task.currentRequest,
-                        let host = currentRequest.url else {
-                            XCTFail("Missing required objects!")
-                            return
-                    }
-                    XCTAssertEqual(host, newConfig.host)
-                    exp.fulfill()
-                })
+        // Grab the network task and verify it has the information from newConfig
+        relay.urlSession?.getAllTasks(completionHandler: { tasks in
+            guard let record = relay.realm.objects(LogRecord.self).first,
+                let task = tasks.filter({ $0.taskIdentifier == record.uploadTaskID }).first,
+                let currentRequest = task.currentRequest,
+                let host = currentRequest.url else {
+                    XCTFail("Missing required objects!")
+                    return
             }
-        }
+            XCTAssertEqual(host, newConfig.host)
+            exp.fulfill()
+        })
         
         waitForExpectations(timeout: 5, handler: nil)
     }
@@ -118,7 +112,8 @@ class RelayConfigurationTests: RelayTestCase {
         
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
-        
+        relay.completionQueue.waitUntilAllOperationsAreFinished()
+
         return relay
     }
 }

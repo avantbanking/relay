@@ -11,8 +11,6 @@ import Foundation
 
 protocol RelayTestingDelegate: RelayDelegate {
     
-    func relayDidFinishFlush(relay: Relay)
-    
     func relay(relay: Relay, didUploadLogRecord record: LogRecord)
     
     func relay(relay: Relay, didFailToUploadLogRecord record: LogRecord, error: Error?, response: HTTPURLResponse?)

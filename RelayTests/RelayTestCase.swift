@@ -21,8 +21,6 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
 
     var failureBlock: ((_ record: LogRecord, _ error: Error?,_ response: HTTPURLResponse?) -> Void)?
     
-    var finishedFlushingBlock: (() -> Void)?
-    
 
     override class func setUp() {
         RelayTestCase.deleteRelayDirectory()
@@ -36,7 +34,6 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
         
         successBlock = nil
         failureBlock = nil
-        finishedFlushingBlock = nil
         recordDeletionBlock = nil
     }
 
@@ -58,13 +55,6 @@ class RelayTestCase: XCTestCase, RelayTestingDelegate {
     
 
     //MARK: RelayTestingDelegate methods
-    
-
-    func relayDidFinishFlush(relay: Relay) {
-        finishedFlushingBlock?()
-        finishedFlushingBlock = nil
-    }
-    
 
     func relay(relay: Relay, didUploadLogRecord record: LogRecord) {
         successBlock?(record)
