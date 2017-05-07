@@ -163,7 +163,6 @@ class RelayTests: RelayTestCase {
         sessionMock.taskResponseTime = 2 // Make it long enough so the network task is still present when we switch configs
         
         let relay = createRelay(withIdentifier: "testReset", sessionMock: sessionMock)
-        
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
         
