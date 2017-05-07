@@ -68,10 +68,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     private var _configuration: RelayConfiguration
 
-    private let writeQueue: OperationQueue = {
+    let writeQueue: OperationQueue = {
         let opq = OperationQueue()
         opq.qualityOfService = .utility
-        opq.maxConcurrentOperationCount = 1
         
         return opq
     }()
@@ -144,10 +143,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         write() { realm in
             realm.deleteAll()
         }
-        write() { _ in
-            DispatchQueue.global(qos: .utility).async {
-                completion?()
-            }
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            self?.writeQueue.waitUntilAllOperationsAreFinished()
+
+            completion?()
         }
     }
     
