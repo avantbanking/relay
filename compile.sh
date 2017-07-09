@@ -1,4 +1,4 @@
 echo "Compiling..."
 git submodule update --init --recursive
-carthage_cache install
+carthage bootstrap --platform ios --cache-builds
 fastlane scan
