@@ -6,11 +6,12 @@ branches:
   except:
   - gh-pages
 before_install:
+- brew install blender/homebrew-tap/rome
 - openssl aes-256-cbc -K $encrypted_6ae9c2fab656_key -iv $encrypted_6ae9c2fab656_iv
   -in deploy_key.enc -out deploy_key -d
 - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-- gem install slather jazzy fastlane carthage_cache -N
-script: bash build.sh
+- gem install slather jazzy fastlane -N
+script: travis_wait bash build.sh
 notifications:
   slack:
     secure: REmY4XnYQ5QDu49J3co/VjHQ92DccFPVo9vBobWvcRzqZ03ph0v2zcqIDrVlwc1as1eZ+FAXhJ2tCrEbTax14er1DTXyZPT3Ger1Vmdn2E543D/LwCIaokzPc5quWB8pRy2C6TIzOUAarQ59BkJkGe6yP5VSk3TmpkmRleFT3+oMu+CqTqTuUcsXPRsGAlNMnN24NMhVHPBMXOFTZAEzgDKUBxYhUZTFk//dBVUgXZOOo8dSw1dKJnu85noUGwj14rtBaYa5e1u6cAulh/cDaU8K6x9WnylmU7Jg3kaTR5fYpjxuD8IB0DthIURm3MyyoyS+e0RJxoNxl4NE3aN+b9c2nXyQgiz+me8k80Ah1gMh6GAmUgHsPMPnj9avEI15S22t4pUI9I43TEbzGZ6N0+B34jlVWCImioYCTLsrPh0IA8H4xvrlqla58f4nukd1N4gw1vR78N8Repx4PfRb/LfSP0hYI0yoAjSpmzaERKsMPI6bbYuLxUbidIVTLuFcrJfwgs2uTsEeAQZLStwt7S9v1nKKP+buSbi8B5iD5EcEsNao4nqIIT95tDFHZ6zvbrlVT/oiQPdEk1dbxYIyjLe3WbU9bNO59LgWX5Ap96yOk/l5lNJBpdPL2xCm1OR1umHotr84lowQFE4hl8z2EMy23BOIdgkErqpcI5vMpyw=
