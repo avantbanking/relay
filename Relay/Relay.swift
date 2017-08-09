@@ -48,7 +48,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// Represents the network connection settings used when firing off network tasks.
     /// Changing the host and/or additional headers will update pending log uploads
     /// automatically.
-    public var configuration: RelayConfiguration {
+    public var configuration: RelayRemoteConfiguration {
         get {
             return _configuration
         }
@@ -67,7 +67,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// The active session, confirming to URLSessionProtcol to aid in testing.
     var urlSession: URLSessionProtocol?
     
-    private var _configuration: RelayConfiguration
+    private var _configuration: RelayRemoteConfiguration
 
     private let writeQueue: OperationQueue = {
         let opq = OperationQueue()
@@ -89,10 +89,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///   - identifier: the identifier to be used for this relay. Each relay maintains it's own
     ///                 internal sqlite database for bookkeeping.
     ///
-    ///   - configuration: see the documentation for `RelayConfiguration` for more information.
+    ///   - configuration: see the documentation for `RelayRemoteConfiguration` for more information.
     ///
     ///   - testSession: only to be used when running tests!
-    required public init(identifier: String, configuration: RelayConfiguration, testSession: URLSessionProtocol? = nil) {
+    required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) {
         
         _identifier = identifier
         if testSession != nil && !isRunningUnitTests() {
@@ -211,10 +211,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
     
-    /// Checks pending tasks to ensure they have the appropriate settings from the current `RelayConfiguration`
+    /// Checks pending tasks to ensure they have the appropriate settings from the current `RelayRemoteConfiguration`
     func recreatePendingUploadTasksIfNeeded(tasks: [URLSessionTask]) {
         
-        /// Returns true if the task's request aligns with the current `RelayConfiguration`
+        /// Returns true if the task's request aligns with the current `RelayRemoteConfiguration`
         ///
         /// - Parameter task
         /// - Returns: Bool

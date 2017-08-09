@@ -1,5 +1,5 @@
 //
-//  RelayConfiguration.swift
+//  RelayRemoteConfiguration.swift
 //  Relay
 //
 //  Created by Evan Kimia on 1/6/17.
@@ -10,7 +10,7 @@ import Foundation
 
 
 /// Configures the network settings used when uploading logs.
-public struct RelayConfiguration: Equatable {
+public struct RelayRemoteConfiguration: Equatable {
 
     public let host: URL
 
@@ -19,7 +19,7 @@ public struct RelayConfiguration: Equatable {
     public var successfulHTTPStatusCodes = [200]
 
     
-    /// Generates a RelayConfiguration object
+    /// Generates a RelayRemoteConfiguration object
     ///
     /// - Parameters:
     ///   - host
@@ -55,7 +55,7 @@ public struct RelayConfiguration: Equatable {
     
     // MARK: Equatable Protocol Methods
     
-    public static func ==(lhs: RelayConfiguration, rhs: RelayConfiguration) -> Bool {
+    public static func ==(lhs: RelayRemoteConfiguration, rhs: RelayRemoteConfiguration) -> Bool {
         if lhs.httpHeaders != rhs.httpHeaders {
             return false
         }

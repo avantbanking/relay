@@ -53,7 +53,7 @@ class RelayTests: RelayTestCase {
         let sessionMock = URLSessionMock(response: HTTPURLResponse(url: URL(string: "http://example.com")!, statusCode: 200, httpVersion: nil, headerFields: nil))
 
         let relay = createRelay(withIdentifier: "testSuccessfulLogFlush",
-                    configuration: RelayConfiguration(host: URL(string: "http://example.com")!),
+                    configuration: RelayRemoteConfiguration(host: URL(string: "http://example.com")!),
                     sessionMock: sessionMock)
         
         DDLogInfo("This should successfully upload")
@@ -102,7 +102,7 @@ class RelayTests: RelayTestCase {
         let sessionMock = URLSessionMock(response: HTTPURLResponse(url: URL(string: "http://doesntmatter.com")!, statusCode: 500, httpVersion: nil, headerFields: nil))
 
         let relay = createRelay(withIdentifier: "testFailedUploadRetries",
-                    configuration: RelayConfiguration(host: URL(string: "http://example.com")!),
+                    configuration: RelayRemoteConfiguration(host: URL(string: "http://example.com")!),
                     sessionMock: sessionMock)
         
         DDLogInfo("Testing one two...")
@@ -128,7 +128,7 @@ class RelayTests: RelayTestCase {
         let error = NSError(domain: "", code: NSURLErrorCancelled, userInfo: nil)
         let sessionMock = URLSessionMock(error: error)
         
-        _ = createRelay(withIdentifier: "testCancelledTask", configuration: RelayConfiguration(host: URL(string: "http://example.com")!), sessionMock: sessionMock)
+        _ = createRelay(withIdentifier: "testCancelledTask", configuration: RelayRemoteConfiguration(host: URL(string: "http://example.com")!), sessionMock: sessionMock)
 
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
@@ -208,11 +208,11 @@ class RelayTests: RelayTestCase {
     // MARK: Helpers
 
     private func createRelay(withIdentifier identifier: String,
-                             configuration: RelayConfiguration? = nil,
+                             configuration: RelayRemoteConfiguration? = nil,
                              sessionMock: URLSessionMock? = nil) -> Relay {
         
         let relay = Relay(identifier:identifier,
-                      configuration: configuration ?? RelayConfiguration(host: URL(string: "http://example.com")!),
+                      configuration: configuration ?? RelayRemoteConfiguration(host: URL(string: "http://example.com")!),
                       testSession:sessionMock)
         
         sessionMock?.delegate = relay
