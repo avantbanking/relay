@@ -11,6 +11,7 @@ before_install:
 - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 - gem install slather jazzy fastlane -N
 - brew install blender/homebrew-tap/rome
+- rome download
 script: bash build.sh
 notifications:
   slack:
