@@ -1,5 +1,5 @@
 [Cache]
-  S3-Bucket = zero-carthage-cache
+  S3-Bucket = zero-relay
 
 [RepositoryMap]
 	CocoaLumberjack = CocoaLumberjackSwift, CocoaLumberjack
