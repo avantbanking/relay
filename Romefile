@@ -1,0 +1,6 @@
+[Cache]
+  S3-Bucket = zero-carthage-cache
+
+[RepositoryMap]
+	CocoaLumberjack = CocoaLumberjackSwift, CocoaLumberjack
+	realm-cocoa = Realm, RealmSwift
