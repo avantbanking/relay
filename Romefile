@@ -1,0 +1,7 @@
+[Cache]
+  S3-Bucket = zero-relay
+   local = $HOME/.cache/rome
+
+[RepositoryMap]
+	CocoaLumberjack = CocoaLumberjackSwift, CocoaLumberjack
+	realm-cocoa = Realm, RealmSwift

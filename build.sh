@@ -5,7 +5,6 @@ set -e # Exit with nonzero exit code if anything fails
 
 echo "--------------------------------"
 echo "Travis environmental variables:"
-printenv
 echo "--------------------------------"
 
 # Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
