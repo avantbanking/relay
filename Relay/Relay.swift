@@ -36,7 +36,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     /// Internal database, marked as internal for use when running tests.
     var realm: Realm {
-        let config = Realm.Configuration(fileURL: relayPath().appendingPathComponent(identifier + ".realm"), readOnly: false, schemaVersion: 1)
+        let config = Realm.Configuration(fileURL: relayPath().appendingPathComponent(identifier + ".realm"),
+                                         readOnly: false, schemaVersion: 1)
         do {
             return try Realm(configuration: config)
         } catch {
@@ -47,7 +48,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// Represents the network connection settings used when firing off network tasks.
     /// Changing the host and/or additional headers will update pending log uploads
     /// automatically.
-    public var configuration: RelayConfiguration {
+    public var configuration: RelayRemoteConfiguration {
         get {
             return _configuration
         }
@@ -66,16 +67,21 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// The active session, confirming to URLSessionProtcol to aid in testing.
     var urlSession: URLSessionProtocol?
     
-    private var _configuration: RelayConfiguration
+    private var _configuration: RelayRemoteConfiguration
 
     private let writeQueue: OperationQueue = {
         let opq = OperationQueue()
         opq.qualityOfService = .utility
-        opq.maxConcurrentOperationCount = 1
         
         return opq
     }()
-
+    
+    let completionQueue: OperationQueue = {
+        let opq = OperationQueue()
+        opq.qualityOfService = .utility
+        
+        return opq
+    }()
 
     /// Initializes a relay.
     ///
@@ -83,10 +89,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     ///   - identifier: the identifier to be used for this relay. Each relay maintains it's own
     ///                 internal sqlite database for bookkeeping.
     ///
-    ///   - configuration: see the documentation for `RelayConfiguration` for more information.
+    ///   - configuration: see the documentation for `RelayRemoteConfiguration` for more information.
     ///
     ///   - testSession: only to be used when running tests!
-    required public init(identifier: String, configuration: RelayConfiguration, testSession: URLSessionProtocol? = nil) {
+    required public init(identifier: String, configuration: RelayRemoteConfiguration, testSession: URLSessionProtocol? = nil) {
         
         _identifier = identifier
         if testSession != nil && !isRunningUnitTests() {
@@ -108,17 +114,24 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
 
-    func write(_ code: @escaping (_ realm: Realm) -> Void) {
-        writeQueue.addOperation { [weak self] in
+    func write(_ code: @escaping (_ realm: Realm) -> Void, completion: (() -> Void)? = nil) {
+        let writeOp = BlockOperation { [weak self] in
             guard let realm = self?.realm else { return }
             do {
-                try realm.write() {
-                    code(realm)
-                }
+                realm.beginWrite()
+                code(realm)
+                try realm.commitWrite()
             } catch {
                 print("error writing object: \(error)")
             }
         }
+        writeQueue.addOperation(writeOp)
+        
+        let completionOp = BlockOperation() {
+            completion?()
+        }
+        completionOp.addDependency(writeOp)
+        completionQueue.addOperation(completionOp)
     }
 
 
@@ -141,27 +154,26 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
 
     /// Removes all logs from the internal database. Logs already passed to the system for uploading will not be cancelled.
     public func reset(_ completion: (() -> Void)? = nil) {
-        write() { realm in
+        write({ realm in
             realm.deleteAll()
-        }
-        write() { _ in
-            DispatchQueue.global(qos: .utility).async {
-                completion?()
-            }
+            print("count after deletion: \(realm.objects(LogRecord.self).count)")
+        }) { [weak self] in 
+            self?.realm.refresh()
+            
+            completion?()
         }
     }
     
     
     /// Uploads all logs to the server.
     func flushLogs(_ completion: (() -> Void)? = nil) {
-        write() { [weak self] realm in
+        write({ [weak self] realm in
             let logRecords = realm.objects(LogRecord.self).filter(NSPredicate(format: "_uploadTaskID == nil", argumentArray: nil))
             for record in logRecords {
                 self?.uploadLogRecord(logRecord: record)
             }
-            DispatchQueue.global(qos: .utility).async {
-                completion?()
-            }
+        }) {
+            completion?()
         }
     }
     
@@ -199,10 +211,10 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     }
     
     
-    /// Checks pending tasks to ensure they have the appropriate settings from the current `RelayConfiguration`
+    /// Checks pending tasks to ensure they have the appropriate settings from the current `RelayRemoteConfiguration`
     func recreatePendingUploadTasksIfNeeded(tasks: [URLSessionTask]) {
         
-        /// Returns true if the task's request aligns with the current `RelayConfiguration`
+        /// Returns true if the task's request aligns with the current `RelayRemoteConfiguration`
         ///
         /// - Parameter task
         /// - Returns: Bool
@@ -226,22 +238,23 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
 
         for task in tasks {
             guard !checkTaskRequest(task: task) else { return }
-            write() { [weak self] realm in
+            write({ [weak self] realm in
                 guard let record = realm.objects(LogRecord.self).filter("_uploadTaskID == %i", task.taskIdentifier).first else { return }
                 task.cancel()
                 
                 self?.uploadLogRecord(logRecord: record)
-            }
+            })
         }
     }
     
     
     /// Ensures a `LogRecord` does not have an uploadTaskID not associated with any `URLSessionTasks` in the session.
-    func cleanup() {
+    func cleanup(completion: (() -> Void)? = nil) {
         // Get our tasks from the session and ensure we dont have a log record associated with a nonexistent task.
         urlSession?.getAllTasks { [weak self] tasks in
             guard let this = self else { return }
-            this.write() { realm in
+            this.writeQueue.waitUntilAllOperationsAreFinished()
+            this.write({ realm in
                 let logRecords = realm.objects(LogRecord.self).filter(NSPredicate(format: "_uploadTaskID != nil", argumentArray: nil))
                 for record in logRecords {
                     if tasks.filter({ record.uploadTaskID == $0.taskIdentifier }).isEmpty {
@@ -249,9 +262,11 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                          this.uploadLogRecord(logRecord: record)
                     }
                 }
+            }) {
+                self?.recreatePendingUploadTasksIfNeeded(tasks: tasks)
+                
+                completion?()
             }
-
-            this.recreatePendingUploadTasksIfNeeded(tasks: tasks)
         }
     }
     
@@ -268,7 +283,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// - Parameter task: The completed task.
     ///
     private func processLogUploadTask(task: URLSessionUploadTask, error: Error?) {
-        write() { [weak self] realm in
+        write({ [weak self] realm in
             guard let this = self, let record = realm.objects(LogRecord.self).filter("_uploadTaskID == %i", task.taskIdentifier).first else { return }
             
             if let error = error as NSError?, error.code == NSURLErrorCancelled {
@@ -301,7 +316,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                     }
                 }
             }
-        }
+        })
     }
     
     
@@ -330,7 +345,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     override public func log(message logMessage: DDLogMessage) {
         // Generate a LogRecord from a LogMessage
-        write { [weak self] realm in
+        write({ [weak self] realm in
             guard let this = self else { return }
             // Save it
             let record = LogRecord(logMessage: logMessage, loggerIdentifier: this.identifier)
@@ -340,11 +355,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 let oldestLogRecord = realm.objects(LogRecord.self).sorted(byKeyPath: "_date", ascending: true).first {
                 this.deleteLogRecord(oldestLogRecord)
             }
-            this.flushLogs() {
-                if let delegate = this.delegate as? RelayTestingDelegate {
-                    delegate.relayDidFinishFlush(relay: this)
-                }
-            }
+        }) { [weak self] in
+            self?.flushLogs()
         }
     }
 }

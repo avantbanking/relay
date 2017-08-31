@@ -11,7 +11,7 @@ import RealmSwift
 import CocoaLumberjackSwift
 
 
-public class LogRecord : Object {
+public class LogRecord: Object {
     
     var uuid: String {
         guard let _uuid = _uuid else { fatalError() }
