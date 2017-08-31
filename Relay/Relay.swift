@@ -36,8 +36,7 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     
     /// Internal database, marked as internal for use when running tests.
     var realm: Realm {
-        let config = Realm.Configuration(fileURL: relayPath().appendingPathComponent(identifier + ".realm"),
-                                         readOnly: false, schemaVersion: 1)
+        let config = Realm.Configuration(fileURL: relayPath().appendingPathComponent(identifier + ".realm"), objectTypes:[LogRecord.self])
         do {
             return try Realm(configuration: config)
         } catch {
