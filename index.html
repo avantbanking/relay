@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>  Reference</title>
+    <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="js/jquery.min.js" defer></script>
+    <script src="js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a title="  Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="index.html"> Docs</a> (52% documented)</p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="index.html"> Reference</a>
+        <img id="carat" src="img/carat.png" />
+          Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Classes.html#/s:5Relay9LogRecordC">LogRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Relay.html">Relay</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Protocols/RelayDelegate.html">RelayDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/URLSessionProtocol.html">URLSessionProtocol</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Structs/RelayRemoteConfiguration.html">RelayRemoteConfiguration</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            
+            <h1 id='relay-a-remote-logger-for-a-href-https-github-com-cocoalumberjack-cocoalumberjack-cocoalumberjack-a' class='heading'>Relay: A remote logger for <a href="https://github.com/CocoaLumberjack/CocoaLumberjack">CocoaLumberjack</a>.</h1>
+
+<p><img src="https://img.shields.io/badge/platforms-ios%20-lightgrey.svg" alt="Platforms">
+<img src="https://img.shields.io/badge/languages-swift%203-orange.svg" alt="Languages">
+<img src="https://img.shields.io/badge/license-MIT%2FApache-blue.svg" alt="License">
+<a href="https://travis-ci.org/zerofinancial/relay"><img src="https://travis-ci.org/zerofinancial/relay.svg?branch=master" alt="Build Status"></a>
+<a href="https://coveralls.io/github/Zerofinancial/relay"><img src="https://coveralls.io/repos/github/Zerofinancial/relay/badge.svg" alt="Coverage Status"></a>
+<a href="https://github.com/Carthage/Carthage"><img src="https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat" alt="Carthage compatible"></a>
+<a href="http://twitter.com/zerofinancial"><img src="https://img.shields.io/badge/twitter-@zerofinancial-blue.svg?style=flat" alt="Twitter"></a></p>
+<h3 id='a-href-https-zerofinancial-github-io-relay-see-the-docs-a' class='heading'><a href="https://zerofinancial.github.io/relay/">See the docs</a></h3>
+
+<p>Monitoring fatal crash rates are essential - especially on iOS where submitting a critical bug fix
+is at the mercy of the app review team - but what about nonfatals that prevent or hamper your user&rsquo;s experience? Relay makes it easy to send logs to <a href="https://www.elastic.co/products/logstash">Logstash</a>, <a href="https://www.graylog.org">Graylog</a>, <a href="https://splunk.com">Splunk</a>, and other log aggregators. Designed around unreliable mobile connections, Relay leverages <code>URLSessionUploadTask</code>s to pass log data to the system process ASAP so you don&rsquo;t need to cross your fingers and hope the log uploads before the app is suspended. Pending log uploads are persisted across system reboots, and have a default retry behavior to ensure log data gets successfully sent.</p>
+<h2 id='installation' class='heading'>Installation</h2>
+<h3 id='dependencies' class='heading'>Dependencies</h3>
+
+<ul>
+<li>Given this is a logger for CocoaLumberjack, CocaLumberjack is required.</li>
+<li><a href="https://github.com/realm/realm-cocoa">Realm</a> is used to maintain the log records created from each <code>DDLogMessage</code> passsed from CocoaLumberjack.
+Each created <code><a href="Classes/Relay.html">Relay</a></code> maintains it&rsquo;s own SQLite database located in the Documents folder on iOS.</li>
+</ul>
+<h3 id='carthage' class='heading'>Carthage</h3>
+
+<p>Add the following to your Cartfile:</p>
+<pre class="highlight plaintext"><code>github zerofinancial.com/relay ~&gt; 0.0.0
+</code></pre>
+
+<p>Be sure to add <code><a href="Classes/Relay.html">Relay</a></code> and <code>Realm</code> to your Carthage run script.</p>
+<h3 id='manually' class='heading'>Manually</h3>
+
+<p>Download the latest framework binary off the releases page, and <a href="https://github.com/realm/realm-cocoa">Realm</a>. Add them to your project, set the proper framework search paths, and you&rsquo;re ready to go.</p>
+<h2 id='configuration' class='heading'>Configuration</h2>
+
+<p>Take a look at the <a href="https://zerofinancial.github.io/relay/">documentation</a> for all configurable options.</p>
+<h2 id='license' class='heading'>License</h2>
+
+<p>Relay is licensed under either of</p>
+
+<ul>
+<li>Apache License, Version 2.0 (<a href="LICENSE-APACHE">LICENSE-APACHE</a> or
+<a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>)</li>
+<li>MIT license (<a href="LICENSE-MIT">LICENSE-MIT</a> or
+<a href="http://opensource.org/licenses/MIT">http://opensource.org/licenses/MIT</a>).</li>
+</ul>
+<h3 id='contribution' class='heading'>Contribution</h3>
+
+<p>Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be dual licensed as above, without any additional terms or conditions.</p>
+<h2 id='about' class='heading'>About</h2>
+
+<p><img src="https://github.com/zerofinancial/relay/blob/master/images/zeroLogo.jpg?raw=true" width="119.5" height="33.5" /></p>
+
+<p>Relay is maintained by Zero by Evan Kimia. The names and logos for Zero and Relay are trademarks of Zero Financial Inc.
+Follow our <a href="https://zerofinancial.com/blog">blog</a> or say hi on twitter <a href="https://twitter.com/zerofinancial">@zerofinancial</a>.</p>
+
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2018-04-05)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>

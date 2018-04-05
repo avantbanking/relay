@@ -1,0 +1,89 @@
+{
+  "warnings": [
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/LogRecord.swift",
+      "line": 14,
+      "symbol": "LogRecord",
+      "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/Relay.swift",
+      "line": 15,
+      "symbol": "Relay",
+      "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/Relay.swift",
+      "line": 336,
+      "symbol": "Relay.urlSession(_:task:didCompleteWithError:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/Relay.swift",
+      "line": 345,
+      "symbol": "Relay.log(message:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/RelayConfiguration.swift",
+      "line": 15,
+      "symbol": "RelayRemoteConfiguration.host",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/RelayConfiguration.swift",
+      "line": 17,
+      "symbol": "RelayRemoteConfiguration.httpHeaders",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/RelayConfiguration.swift",
+      "line": 19,
+      "symbol": "RelayRemoteConfiguration.successfulHTTPStatusCodes",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/RelayDelegate.swift",
+      "line": 13,
+      "symbol": "RelayDelegate",
+      "symbol_kind": "source.lang.swift.decl.protocol",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/URLSessionProtocol.swift",
+      "line": 12,
+      "symbol": "URLSessionProtocol",
+      "symbol_kind": "source.lang.swift.decl.protocol",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/URLSessionProtocol.swift",
+      "line": 14,
+      "symbol": "URLSessionProtocol.delegate",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/URLSessionProtocol.swift",
+      "line": 16,
+      "symbol": "URLSessionProtocol.uploadTask(with:fromFile:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/travis/build/zerofinancial/relay/Relay/URLSessionProtocol.swift",
+      "line": 18,
+      "symbol": "URLSessionProtocol.getAllTasks(completionHandler:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    }
+  ],
+  "source_directory": "/Users/travis/build/zerofinancial/relay"
+}
