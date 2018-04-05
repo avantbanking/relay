@@ -76,11 +76,11 @@ public class LogRecord: Object {
         }
     }
     
-    dynamic var uploadRetries = 0
+    @objc dynamic var uploadRetries = 0
 
-    private dynamic var _uuid: String?
+    @objc private dynamic var _uuid: String?
     
-    private dynamic var _message: String?
+    @objc private dynamic var _message: String?
 
     private let _flag = RealmOptional<Int>()
 
@@ -88,13 +88,13 @@ public class LogRecord: Object {
 
     private let _line = RealmOptional<Int>()
 
-    private dynamic var _file: String?
+    @objc private dynamic var _file: String?
 
     private let _context = RealmOptional<Int>()
 
-    private dynamic var _function: String?
+    @objc private dynamic var _function: String?
 
-    private dynamic var _date: Date?
+    @objc private dynamic var _date: Date?
     
     private let _uploadTaskID = RealmOptional<Int>()
 
