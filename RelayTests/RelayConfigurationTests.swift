@@ -91,7 +91,7 @@ class RelayRemoteConfigurationTests: RelayTestCase {
         successBlock = { _ in
             exp.fulfill()
         }
-        failureBlock = { _ in
+        failureBlock = { _, _, _ in
             XCTFail("Expected a successful upload, got a failure instead.")
         }
         
