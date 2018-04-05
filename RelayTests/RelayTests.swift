@@ -108,7 +108,7 @@ class RelayTests: RelayTestCase {
         DDLogInfo("Testing one two...")
         DDLog.flushLog()
 
-        failureBlock = { record in
+        failureBlock = { record, _, _ in
             // the database should be empty
             relay.write({ realm in
                 let count = relay.realm.objects(LogRecord.self).count
