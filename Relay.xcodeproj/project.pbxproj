@@ -254,6 +254,7 @@
 				CocoaLumberjack,
 				CocoaLumberjackSwift,
 				Realm,
+				RealmSwift,
 			);
 			name = "Copy Carthage Frameworks";
 			outputPaths = (

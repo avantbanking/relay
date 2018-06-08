@@ -8,6 +8,7 @@
 
 import Foundation
 import CocoaLumberjack
+import Realm
 import RealmSwift
 
 
