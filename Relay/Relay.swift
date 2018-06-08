@@ -9,7 +9,6 @@
 import Foundation
 import CocoaLumberjack
 import RealmSwift
-import Realm
 
 
 public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
@@ -59,6 +58,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
             }
         }
     }
+    
+    /// Add additional information to each log uploaded, such as a user_uuid
+    public var additionalLogValues: [String: Any]?
 
     /// Completion handler passed from the appDelegate's [application(_:handleEventsForBackgroundURLSession:completionHandler:) method](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1622941-application)
     var sessionCompletionHandler: (() -> Void)?
@@ -194,6 +196,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
                 return request
             }()
             
+            var recordDict = logRecord.dict
+            recordDict["extra"] = recordDict
             let jsonData = try JSONSerialization.data(withJSONObject: logRecord.dict)
             
             let fileURL = relayPath().appendingPathComponent("\(logRecord.uuid)")

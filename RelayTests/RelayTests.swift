@@ -10,7 +10,6 @@ import XCTest
 import CocoaLumberjack
 import CocoaLumberjackSwift
 import Realm
-import RealmSwift
 
 @testable import Relay
 
