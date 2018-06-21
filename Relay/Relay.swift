@@ -30,6 +30,9 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// `RelayDelegate` is used to report successful/failed log uploads.
     public weak var delegate: RelayDelegate?
     
+    /// Called at logtime to generate any additional fields for a log record.
+    public var additionalFields: (() -> [String: String])?
+    
     /// The number of upload retries before the log is deleted.
     /// A nil value means it will retry indefinitely.
     public var uploadRetries = 3
@@ -347,7 +350,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         write({ [weak self] realm in
             guard let this = self else { return }
             // Save it
-            let record = LogRecord(logMessage: logMessage, loggerIdentifier: this.identifier)
+            let additionalFields = self?.additionalFields?() ?? [:]
+            let record = LogRecord(logMessage: logMessage, loggerIdentifier: this.identifier, additionalFields: additionalFields)
             realm.add(record)
             let logRecordCount = realm.objects(LogRecord.self).count
             if logRecordCount > this.maxNumberOfLogs,

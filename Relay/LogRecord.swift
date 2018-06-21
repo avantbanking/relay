@@ -95,13 +95,33 @@ public class LogRecord: Object {
     @objc private dynamic var _function: String?
 
     @objc private dynamic var _date: Date?
+
+    @objc private dynamic var _additionalFieldsData: Data?
+    private var _additionalFields: [String: String] {
+        get {
+            guard let data = _additionalFieldsData else { return [:] }
+            
+            do {
+                return try [String: String].deserialize(data: data)
+            } catch {
+                fatalError("Encountered an error deserializing additional fields: \(error)")
+            }
+        }
+        set {
+            do {
+                _additionalFieldsData = try newValue.serialize()
+            } catch {
+                fatalError("Encountered an error serializing additional fields: \(error)")
+            }
+        }
+    }
     
     private let _uploadTaskID = RealmOptional<Int>()
 
 
-    convenience init(logMessage: DDLogMessage, loggerIdentifier: String) {
+    convenience init(logMessage: DDLogMessage, loggerIdentifier: String, additionalFields: [String: String] = [:]) {
         self.init()
-
+        
         _uuid = UUID().uuidString
         _message = logMessage.message
         _flag.value = Int(logMessage.flag.rawValue)
@@ -111,6 +131,7 @@ public class LogRecord: Object {
         _context.value = logMessage.context
         _function = logMessage.function
         _date = logMessage.timestamp
+        _additionalFields = additionalFields
         
     }
     
@@ -122,6 +143,10 @@ public class LogRecord: Object {
         dict["flag"] = flag
         dict["level"] = level
         dict["date"] = date.description
+        
+        for (key, value) in _additionalFields {
+            dict[key] = value
+        }
         
         return dict
     }
@@ -139,4 +164,17 @@ public class LogRecord: Object {
                                       timestamp: date)
     }
     
+}
+
+extension Encodable {
+    public func serialize() throws -> Data {
+        return try JSONEncoder().encode(self)
+    }
+}
+
+
+extension Decodable {
+    public static func deserialize(data: Data) throws -> Self {
+        return try JSONDecoder().decode(Self.self, from: data)
+    }
 }
