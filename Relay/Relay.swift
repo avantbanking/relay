@@ -37,16 +37,6 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// A nil value means it will retry indefinitely.
     public var uploadRetries = 3
     
-    /// Internal database, marked as internal for use when running tests.
-    var realm: Realm {
-        let config = Realm.Configuration(fileURL: relayPath().appendingPathComponent(identifier + ".realm"), objectTypes:[LogRecord.self])
-        do {
-            return try Realm(configuration: config)
-        } catch {
-            fatalError("Error initializing Realm: \(error)")
-        }
-    }
-    
     /// Represents the network connection settings used when firing off network tasks.
     /// Changing the host and/or additional headers will update pending log uploads
     /// automatically.
