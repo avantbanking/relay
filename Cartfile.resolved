@@ -1,2 +1,2 @@
-github "CocoaLumberjack/CocoaLumberjack" "3.4.2"
-github "realm/realm-cocoa" "v3.9.2"
+github "CocoaLumberjack/CocoaLumberjack" "3.5.2"
+github "realm/realm-cocoa" "v3.14.0"
