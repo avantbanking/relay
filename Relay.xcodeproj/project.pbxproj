@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		033C4F8120DC1EF600143B4F /* Relay+Realm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033C4F8020DC1EF600143B4F /* Relay+Realm.swift */; };
 		451F2F971E20BD7900EA9394 /* RelayDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451F2F961E20BD7900EA9394 /* RelayDelegate.swift */; };
 		4522EB3D1E24A67C00101132 /* FrameworkUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4522EB3C1E24A67C00101132 /* FrameworkUtilities.swift */; };
 		4540D3CB1EB997BA005E40FD /* URLSessionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */; };
@@ -35,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		033C4F8020DC1EF600143B4F /* Relay+Realm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Relay+Realm.swift"; sourceTree = "<group>"; };
 		4506CBBC1E10FD0200DB9EA6 /* URLSessionMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = URLSessionMock.swift; path = RelayTests/URLSessionMock.swift; sourceTree = SOURCE_ROOT; };
 		451F2F961E20BD7900EA9394 /* RelayDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RelayDelegate.swift; sourceTree = "<group>"; };
 		4522EB3C1E24A67C00101132 /* FrameworkUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FrameworkUtilities.swift; sourceTree = "<group>"; };
@@ -112,6 +114,7 @@
 				45422F991E1F9894001CDA37 /* RelayConfiguration.swift */,
 				45D8457D1E236DC30017FD5C /* LogRecord.swift */,
 				455364861E0A098D00BF1699 /* Relay.swift */,
+				033C4F8020DC1EF600143B4F /* Relay+Realm.swift */,
 				4522EB3C1E24A67C00101132 /* FrameworkUtilities.swift */,
 				4571F4171E25BF5B008D7F78 /* TestUtilities.swift */,
 				4540D3CE1EB99A96005E40FD /* RelayTestingDelegate.swift */,
@@ -205,13 +208,13 @@
 					455364691E0A07A000BF1699 = {
 						CreatedOnToolsVersion = 8.2;
 						DevelopmentTeam = PZX79F275H;
-						LastSwiftMigration = 0820;
+						LastSwiftMigration = 1000;
 						ProvisioningStyle = Automatic;
 					};
 					455364721E0A07A000BF1699 = {
 						CreatedOnToolsVersion = 8.2;
 						DevelopmentTeam = PZX79F275H;
-						LastSwiftMigration = 0930;
+						LastSwiftMigration = 1000;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -272,6 +275,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4540D3CD1EB997D7005E40FD /* URLSessionProtocol.swift in Sources */,
+				033C4F8120DC1EF600143B4F /* Relay+Realm.swift in Sources */,
 				4522EB3D1E24A67C00101132 /* FrameworkUtilities.swift in Sources */,
 				455364871E0A098D00BF1699 /* Relay.swift in Sources */,
 				4540D3D01EB99B44005E40FD /* RelayTestingDelegate.swift in Sources */,
@@ -341,10 +345,11 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				"FRAMEWORK_SEARCH_PATHS[sdk=appletv*]" = "$(SRCROOT)/Carthage/Build/tvOS/**";
-				"FRAMEWORK_SEARCH_PATHS[sdk=iphone*]" = "$(SRCROOT)/Carthage/Build/iOS/**";
-				"FRAMEWORK_SEARCH_PATHS[sdk=macosx*]" = "$(SRCROOT)/Carthage/Build/Mac/**";
-				"FRAMEWORK_SEARCH_PATHS[sdk=watch*]" = "$(SRCROOT)/Carthage/Build/watchOS/**";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+					"$(PROJECT_DIR)/../../Build/iOS",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -410,10 +415,11 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				"FRAMEWORK_SEARCH_PATHS[sdk=appletv*]" = "$(SRCROOT)/Carthage/Build/tvOS/**";
-				"FRAMEWORK_SEARCH_PATHS[sdk=iphone*]" = "$(SRCROOT)/Carthage/Build/iOS/**";
-				"FRAMEWORK_SEARCH_PATHS[sdk=macosx*]" = "$(SRCROOT)/Carthage/Build/Mac/**";
-				"FRAMEWORK_SEARCH_PATHS[sdk=watch*]" = "$(SRCROOT)/Carthage/Build/watchOS/**";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+					"$(PROJECT_DIR)/../../Build/iOS",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -458,6 +464,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -482,6 +489,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.Relay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
@@ -495,8 +503,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.RelayTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_SWIFT3_OBJC_INFERENCE = On;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -510,8 +517,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = inc.zerofinancial.RelayTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_SWIFT3_OBJC_INFERENCE = On;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};

@@ -30,19 +30,12 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
     /// `RelayDelegate` is used to report successful/failed log uploads.
     public weak var delegate: RelayDelegate?
     
+    /// Called at logtime to generate any additional fields for a log record.
+    public var additionalFields: (() -> [String: String])?
+    
     /// The number of upload retries before the log is deleted.
     /// A nil value means it will retry indefinitely.
     public var uploadRetries = 3
-    
-    /// Internal database, marked as internal for use when running tests.
-    var realm: Realm {
-        let config = Realm.Configuration(fileURL: relayPath().appendingPathComponent(identifier + ".realm"), objectTypes:[LogRecord.self])
-        do {
-            return try Realm(configuration: config)
-        } catch {
-            fatalError("Error initializing Realm: \(error)")
-        }
-    }
     
     /// Represents the network connection settings used when firing off network tasks.
     /// Changing the host and/or additional headers will update pending log uploads
@@ -347,7 +340,8 @@ public class Relay: DDAbstractLogger, URLSessionTaskDelegate {
         write({ [weak self] realm in
             guard let this = self else { return }
             // Save it
-            let record = LogRecord(logMessage: logMessage, loggerIdentifier: this.identifier)
+            let additionalFields = self?.additionalFields?() ?? [:]
+            let record = LogRecord(logMessage: logMessage, loggerIdentifier: this.identifier, additionalFields: additionalFields)
             realm.add(record)
             let logRecordCount = realm.objects(LogRecord.self).count
             if logRecordCount > this.maxNumberOfLogs,
